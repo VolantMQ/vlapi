@@ -1,0 +1,28 @@
+language: go
+sudo: false
+notifications:
+  email: false
+go:
+  - 1.10
+env:
+  DEP_VERSION="v0.3.2"
+os:
+  - linux
+before_install:
+  - npm install -g codeclimate-test-reporter
+  - go get -u github.com/alecthomas/gometalinter
+  - gometalinter --install
+  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+jobs:
+  include:
+    - stage: test
+      install:
+        - dep ensure
+      script:
+        - go build -race -v -gcflags "-N -l" ./...
+        - gometalinter --fast --exclude=corefoundation.go --deadline=360s --enable-gc --sort=path --cyclo-over=40 --dupl-threshold=100 --disable=gotype --vendor --enable=goimports./...
+        - go test -race -coverprofile=profile.out -covermode=atomic coverage.txt
+- ./go.test.sh
+      after_success:
+        - bash <(curl -s https://codecov.io/bash)
+        - codeclimate-test-reporter < coverage.txt

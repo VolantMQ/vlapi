@@ -1,0 +1,14 @@
+repos:
+-   repo: https://github.com/troian/pre-commit-golang
+    sha: ab57c5db44bbeeae1031a2e9c2889367f8387d59
+    hooks:
+    -   id: go-imports
+    -   id: go-build
+    -   id: go-metalinter
+        args:
+        - --exclude=corefoundation.go
+        - --deadline=60s
+        - --cyclo-over=40
+        - --dupl-threshold=100
+        - --disable=gotype
+        - --disable=govendor
