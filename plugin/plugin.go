@@ -3,6 +3,8 @@ package vlplugin
 import (
 	"errors"
 
+	"net/http"
+
 	"github.com/VolantMQ/vlapi/subsriber"
 	"go.uber.org/zap"
 )
@@ -40,9 +42,21 @@ type Messaging interface {
 	GetSubscriber(id string) (vlsubscriber.IFace, error)
 }
 
+// HTTPHandler provided by VolantMQ server
+type HTTPHandler interface {
+	Mux() *http.ServeMux
+	Addr() string
+}
+
+// HTTP ...
+type HTTP interface {
+	GetHTTPServer(port string) HTTPHandler
+}
+
 // SysParams system-wide config passed to plugin
 type SysParams struct {
 	Messaging
+	HTTP
 	Log           *zap.SugaredLogger
 	SignalFailure func(name, msg string)
 }
