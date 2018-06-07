@@ -17,7 +17,10 @@ jobs:
       install:
         - dep ensure
       script:
-        - go build -race -v -gcflags "-N -l" $(go list ./... | grep -v /vendor/)
+        - go build -race -v -gcflags "-N -l" ./plugin/debug -buildmode=plugin
+        - go build -race -v -gcflags "-N -l" ./plugin/persistence
+        - go build -race -v -gcflags "-N -l" ./subscriber
+        - go build -race -v -gcflags "-N -l" ./auth
         - gometalinter --fast --exclude=corefoundation.go --deadline=360s --enable-gc --sort=path --cyclo-over=40 --dupl-threshold=100 --disable=gotype --vendor --enable=goimports ./...
         - go test -race -coverprofile=coverage.txt -covermode=atomic -v $(go list ./... | grep -v /vendor/)
       after_success:
