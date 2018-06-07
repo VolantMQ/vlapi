@@ -5,7 +5,7 @@ import (
 
 	"net/http"
 
-	"github.com/VolantMQ/vlapi/subsriber"
+	"github.com/VolantMQ/vlapi/subscriber"
 	"go.uber.org/zap"
 )
 
