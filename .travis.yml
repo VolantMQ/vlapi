@@ -17,9 +17,9 @@ jobs:
       install:
         - dep ensure
       script:
-        - go build -race -v -gcflags "-N -l" ./...
+        - go build -race -v -gcflags "-N -l" $(go list ./... | grep -v /vendor/)
         - gometalinter --fast --exclude=corefoundation.go --deadline=360s --enable-gc --sort=path --cyclo-over=40 --dupl-threshold=100 --disable=gotype --vendor --enable=goimports ./...
-        - go test -race -coverprofile=coverage.txt -covermode=atomic
+        - go test -race -coverprofile=coverage.txt -covermode=atomic -v $(go list ./... | grep -v /vendor/)
       after_success:
         - bash <(curl -s https://codecov.io/bash)
         - codeclimate-test-reporter < coverage.txt
