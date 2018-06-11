@@ -4,6 +4,8 @@ import (
 	"errors"
 	"net/http/pprof"
 
+	"strings"
+
 	"github.com/VolantMQ/vlapi/plugin"
 	"gopkg.in/yaml.v2"
 )
@@ -18,6 +20,10 @@ var _ vlplugin.Info = (*pl)(nil)
 // Plugin symbol
 var Plugin pl
 
+const (
+	defaultPath = "/debug/pprof"
+)
+
 func init() {
 	Plugin.V = "0.0.1"
 	Plugin.N = "prof.profiler"
@@ -26,6 +32,7 @@ func init() {
 
 type config struct {
 	Port    string `mapstructure:"port,omitempty" yaml:"port,omitempty" json:"port,omitempty" default:""`
+	Path    string `mapstructure:"path,omitempty" yaml:"path,omitempty" json:"path,omitempty" default:""`
 	CPU     bool   `mapstructure:"cpu,omitempty" yaml:"cpu,omitempty" json:"cpu,omitempty" default:"false"`
 	Memory  bool   `mapstructure:"memory,omitempty" yaml:"memory,omitempty" json:"memory,omitempty" default:"false"`
 	Trace   bool   `mapstructure:"trace,omitempty" yaml:"trace,omitempty" json:"trace,omitempty" default:"false"`
@@ -65,26 +72,32 @@ func (pl *pl) Load(c interface{}, params *vlplugin.SysParams) (pla interface{}, 
 		return
 	}
 
-	params.GetHTTPServer(p.cfg.Port).Mux().HandleFunc("/debug/pprof/", pprof.Index)
+	if p.cfg.Path == "" {
+		p.cfg.Path = defaultPath
+	}
+
+	p.cfg.Path = strings.TrimSuffix(p.cfg.Path, "/")
+
+	params.GetHTTPServer(p.cfg.Port).Mux().HandleFunc(p.cfg.Path+"/", pprof.Index)
 	if p.cfg.CmdLine {
-		params.GetHTTPServer(p.cfg.Port).Mux().HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+		params.GetHTTPServer(p.cfg.Port).Mux().HandleFunc(p.cfg.Path+"/cmdline", pprof.Cmdline)
 	}
 
 	if p.cfg.CPU {
-		params.GetHTTPServer(p.cfg.Port).Mux().HandleFunc("/debug/pprof/profile", pprof.Profile)
+		params.GetHTTPServer(p.cfg.Port).Mux().HandleFunc(p.cfg.Path+"profile", pprof.Profile)
 	}
 
 	if p.cfg.Symbol {
-		params.GetHTTPServer(p.cfg.Port).Mux().HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+		params.GetHTTPServer(p.cfg.Port).Mux().HandleFunc(p.cfg.Path+"/symbol", pprof.Symbol)
 	}
 
 	if p.cfg.Trace {
-		params.GetHTTPServer(p.cfg.Port).Mux().HandleFunc("/debug/pprof/trace", pprof.Trace)
+		params.GetHTTPServer(p.cfg.Port).Mux().HandleFunc(p.cfg.Path+"/trace", pprof.Trace)
 	}
 
 	pla = p
 
-	p.Log.Infof("profiler available at [http://%s/debug/pprof]", params.GetHTTPServer(p.cfg.Port).Addr())
+	p.Log.Infof("profiler available at [http://%s%s]", params.GetHTTPServer(p.cfg.Port).Addr(), p.cfg.Path)
 	return
 }
 

@@ -5,6 +5,7 @@ import (
 
 	"net/http"
 
+	"github.com/VolantMQ/vlapi/plugin/health"
 	"github.com/VolantMQ/vlapi/subscriber"
 	"go.uber.org/zap"
 )
@@ -53,10 +54,15 @@ type HTTP interface {
 	GetHTTPServer(port string) HTTPHandler
 }
 
+type Health interface {
+	GetHealth() vlhealth.Handler
+}
+
 // SysParams system-wide config passed to plugin
 type SysParams struct {
 	Messaging
 	HTTP
+	Health
 	Log           *zap.SugaredLogger
 	SignalFailure func(name, msg string)
 }
