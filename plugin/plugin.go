@@ -5,9 +5,9 @@ import (
 
 	"net/http"
 
-	"github.com/VolantMQ/vlapi/plugin/health"
 	"github.com/VolantMQ/vlapi/subscriber"
 	"go.uber.org/zap"
+	"github.com/troian/healthcheck"
 )
 
 // APIVersion version of current API
@@ -55,7 +55,7 @@ type HTTP interface {
 }
 
 type Health interface {
-	GetHealth() vlhealth.Handler
+	GetHealth() healthcheck.Checks
 }
 
 // SysParams system-wide config passed to plugin

@@ -5,8 +5,7 @@ import (
 	"strings"
 
 	"github.com/VolantMQ/vlapi/plugin"
-	"github.com/VolantMQ/vlapi/plugin/health"
-	"github.com/heptiolabs/healthcheck"
+	"github.com/troian/healthcheck"
 	"gopkg.in/yaml.v2"
 )
 
@@ -43,7 +42,7 @@ type impl struct {
 	cfg config
 }
 
-var _ vlhealth.Handler = (*impl)(nil)
+var _ healthcheck.Handler = (*impl)(nil)
 
 func (pl *pl) Load(c interface{}, params *vlplugin.SysParams) (pla interface{}, err error) {
 	p := &impl{
@@ -86,7 +85,8 @@ func (pl *pl) Load(c interface{}, params *vlplugin.SysParams) (pla interface{}, 
 
 	pla = p
 
-	p.Log.Infof("health check available at [http://%s%s]", params.GetHTTPServer(p.cfg.Port).Addr(), p.cfg.Path)
+	p.Log.Infof("health check liveness endpoint [http://%s%s/%s]", params.GetHTTPServer(p.cfg.Port).Addr(), p.cfg.Path, p.cfg.LivenessEndpoint)
+	p.Log.Infof("health check readiness endpoint [http://%s%s/%s]", params.GetHTTPServer(p.cfg.Port).Addr(), p.cfg.Path, p.cfg.ReadinessEndpoint)
 	return
 }
 
