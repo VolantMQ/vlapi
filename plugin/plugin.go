@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/VolantMQ/vlapi/subscriber"
-	"go.uber.org/zap"
 	"github.com/troian/healthcheck"
+	"go.uber.org/zap"
 )
 
 // APIVersion version of current API
@@ -54,6 +54,7 @@ type HTTP interface {
 	GetHTTPServer(port string) HTTPHandler
 }
 
+// Health ...
 type Health interface {
 	GetHealth() healthcheck.Checks
 }

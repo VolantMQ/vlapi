@@ -48,14 +48,14 @@ var statusDesc = map[Status]string{
 // Permissions check session permissions
 type Permissions interface {
 	// ACL check access type for client id with username
-	ACL(clientId, username, topic string, accessType AccessType) error
+	ACL(clientID, username, topic string, accessType AccessType) error
 }
 
 // IFace interface to auth backends
 type IFace interface {
 	Permissions
 	// Password try authenticate with username and password
-	Password(user, password, clientID string) error
+	Password(clientID, user, password string) error
 	// Shutdown provider
 	Shutdown() error
 }
