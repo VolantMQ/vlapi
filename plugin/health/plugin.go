@@ -1,4 +1,4 @@
-package health
+package main
 
 import (
 	"errors"
