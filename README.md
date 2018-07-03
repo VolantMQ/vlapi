@@ -16,5 +16,8 @@
 ### Implementations
 #### Debug
 #### Health
+#### Persistence
+- in-memory
+- bbolt
 
 ## TBD
