@@ -27,7 +27,7 @@ type ConnAck struct {
 	returnCode     ReasonCode
 }
 
-var _ Provider = (*ConnAck)(nil)
+var _ IFace = (*ConnAck)(nil)
 
 // newConnAck creates a new CONNACK packet
 func newConnAck() *ConnAck {

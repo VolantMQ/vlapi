@@ -20,7 +20,7 @@ type PingResp struct {
 	header
 }
 
-var _ Provider = (*PingResp)(nil)
+var _ IFace = (*PingResp)(nil)
 
 func newPingResp() *PingResp {
 	return &PingResp{}

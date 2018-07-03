@@ -12,9 +12,9 @@ type sessions struct {
 }
 
 type session struct {
-	lock    sync.Mutex
-	state   *SessionState
-	packets PersistedPackets
+	lock  sync.Mutex
+	state *SessionState
+	PersistedPackets
 }
 
 var _ Sessions = (*sessions)(nil)
@@ -57,16 +57,116 @@ func (s *sessions) SubscriptionsDelete(id []byte) error {
 	return nil
 }
 
-func (s *sessions) PacketsForEach(id []byte, loader PacketLoader) error {
+func (s *sessions) PacketsForEachQoS0(id []byte, ctx interface{}, load PacketLoader) error {
 	if elem, ok := s.entries.Load(string(id)); ok {
 		ses := elem.(*session)
 
-		for _, p := range ses.packets {
-			loader.LoadPersistedPacket(p) // nolint: errcheck
+		ses.lock.Lock()
+		for i := len(ses.QoS0) - 1; i >= 0; i-- {
+			rm, err := load(ctx, ses.QoS0[i])
+
+			if rm {
+				ses.QoS0 = append(ses.QoS0[:i], ses.QoS0[i+1:]...)
+			}
+
+			if err != nil {
+				break
+			}
 		}
+
+		ses.lock.Unlock()
 	}
 
 	return nil
+}
+
+func (s *sessions) PacketsForEachQoS12(id []byte, ctx interface{}, load PacketLoader) error {
+	if elem, ok := s.entries.Load(string(id)); ok {
+		ses := elem.(*session)
+
+		ses.lock.Lock()
+		for i := len(ses.QoS12) - 1; i >= 0; i-- {
+			rm, err := load(ctx, ses.QoS12[i])
+
+			if rm {
+				ses.QoS12 = append(ses.QoS12[:i], ses.QoS12[i+1:]...)
+			}
+
+			if err != nil {
+				break
+			}
+		}
+
+		ses.lock.Unlock()
+	}
+
+	return nil
+}
+
+func (s *sessions) PacketsForEachUnAck(id []byte, ctx interface{}, load PacketLoader) error {
+	if elem, ok := s.entries.Load(string(id)); ok {
+		ses := elem.(*session)
+
+		ses.lock.Lock()
+
+		for i := len(ses.UnAck) - 1; i >= 0; i-- {
+			rm, err := load(ctx, ses.UnAck[i])
+
+			if rm {
+				ses.UnAck = append(ses.UnAck[:i], ses.UnAck[i+1:]...)
+			}
+
+			if err != nil {
+				break
+			}
+		}
+
+		ses.lock.Unlock()
+	}
+
+	return nil
+}
+
+func (s *sessions) PacketCountQoS0(id []byte) (int, error) {
+	elem, loaded := s.entries.LoadOrStore(string(id), &session{})
+	if !loaded {
+		atomic.AddUint64(&s.count, 1)
+	}
+
+	ses := elem.(*session)
+
+	defer ses.lock.Unlock()
+	ses.lock.Lock()
+
+	return len(ses.QoS0), nil
+}
+
+func (s *sessions) PacketCountQoS12(id []byte) (int, error) {
+	elem, loaded := s.entries.LoadOrStore(string(id), &session{})
+	if !loaded {
+		atomic.AddUint64(&s.count, 1)
+	}
+
+	ses := elem.(*session)
+
+	defer ses.lock.Unlock()
+	ses.lock.Lock()
+
+	return len(ses.QoS12), nil
+}
+
+func (s *sessions) PacketCountUnAck(id []byte) (int, error) {
+	elem, loaded := s.entries.LoadOrStore(string(id), &session{})
+	if !loaded {
+		atomic.AddUint64(&s.count, 1)
+	}
+
+	ses := elem.(*session)
+
+	defer ses.lock.Unlock()
+	ses.lock.Lock()
+
+	return len(ses.UnAck), nil
 }
 
 func (s *sessions) PacketsStore(id []byte, packets PersistedPackets) error {
@@ -78,7 +178,9 @@ func (s *sessions) PacketsStore(id []byte, packets PersistedPackets) error {
 	ses := elem.(*session)
 
 	ses.lock.Lock()
-	ses.packets = append(ses.packets, packets...)
+	ses.QoS0 = append(ses.QoS0, packets.QoS0...)
+	ses.QoS12 = append(ses.QoS12, packets.QoS12...)
+	ses.UnAck = append(ses.UnAck, packets.UnAck...)
 	ses.lock.Unlock()
 
 	return nil
@@ -89,14 +191,16 @@ func (s *sessions) PacketsDelete(id []byte) error {
 		ses := elem.(*session)
 
 		ses.lock.Lock()
-		ses.packets = PersistedPackets{}
+		ses.QoS0 = []*PersistedPacket{}
+		ses.QoS12 = []*PersistedPacket{}
+		ses.UnAck = []*PersistedPacket{}
 		ses.lock.Unlock()
 	}
 
 	return nil
 }
 
-func (s *sessions) PacketStore(id []byte, pkt *PersistedPacket) error {
+func (s *sessions) PacketStoreQoS0(id []byte, pkt *PersistedPacket) error {
 	elem, loaded := s.entries.LoadOrStore(string(id), &session{})
 	if !loaded {
 		atomic.AddUint64(&s.count, 1)
@@ -105,7 +209,37 @@ func (s *sessions) PacketStore(id []byte, pkt *PersistedPacket) error {
 	ses := elem.(*session)
 
 	ses.lock.Lock()
-	ses.packets = append(ses.packets, pkt)
+	ses.QoS0 = append(ses.QoS0, pkt)
+	ses.lock.Unlock()
+
+	return nil
+}
+
+func (s *sessions) PacketStoreQoS12(id []byte, pkt *PersistedPacket) error {
+	elem, loaded := s.entries.LoadOrStore(string(id), &session{})
+	if !loaded {
+		atomic.AddUint64(&s.count, 1)
+	}
+
+	ses := elem.(*session)
+
+	ses.lock.Lock()
+	ses.QoS12 = append(ses.QoS12, pkt)
+	ses.lock.Unlock()
+
+	return nil
+}
+
+func (s *sessions) PacketStoreUnAck(id []byte, pkt *PersistedPacket) error {
+	elem, loaded := s.entries.LoadOrStore(string(id), &session{})
+	if !loaded {
+		atomic.AddUint64(&s.count, 1)
+	}
+
+	ses := elem.(*session)
+
+	ses.lock.Lock()
+	ses.UnAck = append(ses.UnAck, pkt)
 	ses.lock.Unlock()
 
 	return nil

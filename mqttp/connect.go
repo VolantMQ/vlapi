@@ -59,7 +59,7 @@ type Connect struct {
 	}
 }
 
-var _ Provider = (*Connect)(nil)
+var _ IFace = (*Connect)(nil)
 
 func newConnect() *Connect {
 	return &Connect{}

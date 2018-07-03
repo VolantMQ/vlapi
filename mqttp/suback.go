@@ -25,7 +25,7 @@ type SubAck struct {
 	returnCodes []ReasonCode
 }
 
-var _ Provider = (*SubAck)(nil)
+var _ IFace = (*SubAck)(nil)
 
 func newSubAck() *SubAck {
 	return &SubAck{}

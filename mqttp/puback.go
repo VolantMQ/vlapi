@@ -23,7 +23,7 @@ type Ack struct {
 	reasonCode ReasonCode
 }
 
-var _ Provider = (*Ack)(nil)
+var _ IFace = (*Ack)(nil)
 
 func newPubAck() *Ack {
 	return &Ack{}

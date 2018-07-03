@@ -25,7 +25,7 @@ type UnSubscribe struct {
 	topics []string
 }
 
-var _ Provider = (*UnSubscribe)(nil)
+var _ IFace = (*UnSubscribe)(nil)
 
 func newUnSubscribe() *UnSubscribe {
 	return &UnSubscribe{}

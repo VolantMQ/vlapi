@@ -48,15 +48,14 @@ type PersistedPacket struct {
 	ExpireAt string
 	// Data is encoded byte stream as it goes over network
 	Data []byte
-
-	Flags struct {
-		// UnAck if packet waits acknowledgment from client
-		UnAck bool
-	}
 }
 
 // PersistedPackets array of persisted packets
-type PersistedPackets []*PersistedPacket
+type PersistedPackets struct {
+	QoS0  []*PersistedPacket
+	QoS12 []*PersistedPacket
+	UnAck []*PersistedPacket
+}
 
 // SessionDelays formerly known as expiry set timestamp to handle will delay and/or expiration
 type SessionDelays struct {
@@ -88,10 +87,7 @@ type SystemState struct {
 	NodeName string
 }
 
-// PacketLoader interface must be implemented by session
-type PacketLoader interface {
-	LoadPersistedPacket(*PersistedPacket) error
-}
+type PacketLoader func(interface{}, *PersistedPacket) (bool, error)
 
 // SessionLoader implemented by session manager to load persisted sessions when server starts
 type SessionLoader interface {
@@ -100,8 +96,16 @@ type SessionLoader interface {
 
 // Packets interface for connection to handle packets
 type Packets interface {
-	PacketsForEach([]byte, PacketLoader) error
+	PacketCountQoS0([]byte) (int, error)
+	PacketCountQoS12([]byte) (int, error)
+	PacketCountUnAck([]byte) (int, error)
+	PacketStoreQoS0([]byte, *PersistedPacket) error
+	PacketStoreQoS12([]byte, *PersistedPacket) error
+	PacketsForEachQoS0([]byte, interface{}, PacketLoader) error
+	PacketsForEachQoS12([]byte, interface{}, PacketLoader) error
+	PacketsForEachUnAck([]byte, interface{}, PacketLoader) error
 	PacketsStore([]byte, PersistedPackets) error
+	//PacketsStoreUnAck([]byte, PersistedPackets) error
 	PacketsDelete([]byte) error
 }
 
@@ -126,9 +130,9 @@ type State interface {
 // Retained provider for load/store retained messages
 type Retained interface {
 	// Store persist retained message
-	Store(PersistedPackets) error
+	Store([]*PersistedPacket) error
 	// Load load retained messages
-	Load() (PersistedPackets, error)
+	Load() ([]*PersistedPacket, error)
 	// Wipe retained storage
 	Wipe() error
 }
@@ -142,7 +146,6 @@ type Sessions interface {
 	Create([]byte, *SessionBase) error
 	Count() uint64
 	LoadForEach(SessionLoader, interface{}) error
-	PacketStore([]byte, *PersistedPacket) error
 	Exists([]byte) bool
 	Delete([]byte) error
 }
@@ -153,8 +156,8 @@ type System interface {
 	SetInfo(*SystemState) error
 }
 
-// Provider interface implemented by different backends
-type Provider interface {
+// IFace interface implemented by different backends
+type IFace interface {
 	Sessions() (Sessions, error)
 	Retained() (Retained, error)
 	System() (System, error)

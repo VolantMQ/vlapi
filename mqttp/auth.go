@@ -26,7 +26,7 @@ type Auth struct {
 	authReason ReasonCode
 }
 
-var _ Provider = (*Auth)(nil)
+var _ IFace = (*Auth)(nil)
 
 // newAuth creates a new AUTH packet
 func newAuth() *Auth {

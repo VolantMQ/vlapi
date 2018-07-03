@@ -13,7 +13,7 @@ type impl struct {
 }
 
 // Default allocate new persistence provider of in memory type
-func Default() Provider {
+func Default() IFace {
 	pl := &impl{}
 
 	pl.status.done = make(chan struct{})

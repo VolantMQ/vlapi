@@ -29,7 +29,7 @@ type Publish struct {
 	expireAt  time.Time
 }
 
-var _ Provider = (*Publish)(nil)
+var _ IFace = (*Publish)(nil)
 
 func newPublish() *Publish {
 	return &Publish{}

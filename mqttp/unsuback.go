@@ -22,7 +22,7 @@ type UnSubAck struct {
 	returnCodes []ReasonCode
 }
 
-var _ Provider = (*UnSubAck)(nil)
+var _ IFace = (*UnSubAck)(nil)
 
 func newUnSubAck() *UnSubAck {
 	msg := &UnSubAck{}

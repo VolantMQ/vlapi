@@ -23,7 +23,7 @@ type PingReq struct {
 	header
 }
 
-var _ Provider = (*PingReq)(nil)
+var _ IFace = (*PingReq)(nil)
 
 func newPingReq() *PingReq {
 	return &PingReq{}

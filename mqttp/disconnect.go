@@ -22,7 +22,7 @@ type Disconnect struct {
 	reasonCode ReasonCode
 }
 
-var _ Provider = (*Disconnect)(nil)
+var _ IFace = (*Disconnect)(nil)
 
 func newDisconnect() *Disconnect {
 	return &Disconnect{}

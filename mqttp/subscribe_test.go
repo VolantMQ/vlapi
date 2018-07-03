@@ -122,7 +122,7 @@ func TestSubscribeMessageEncode(t *testing.T) {
 	require.Equal(t, len(buf), n, "Error encoding message.")
 
 	//msg1 := NewSubscribeMessage()
-	var m1 Provider
+	var m1 IFace
 	m1, n, err = Decode(ProtocolV311, dst)
 	msg1, ok := m1.(*Subscribe)
 	require.Equal(t, true, ok, "Invalid message type")

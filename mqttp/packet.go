@@ -69,8 +69,8 @@ func (s SubscriptionOptions) RetainHandling() RetainHandling {
 	return RetainHandling((byte(s) & maskSubscriptionRetainHandling) >> offsetSubscriptionRetainHandling)
 }
 
-// Provider is an interface defined for all MQTT message types.
-type Provider interface {
+// IFace is an interface defined for all MQTT message types.
+type IFace interface {
 	// Desc returns a string description of the message type. For example, a
 	// CONNECT message would return "Client request to connect to Server." These
 	// descriptions are statically defined (copied from the MQTT spec) and cannot
@@ -138,12 +138,12 @@ type Provider interface {
 // New creates a new message based on the message type. It is a shortcut to call
 // one of the New*Message functions. If an error is returned then the message type
 // is invalid.
-func New(v ProtocolVersion, t Type) (Provider, error) {
+func New(v ProtocolVersion, t Type) (IFace, error) {
 	return newMessage(v, t)
 }
 
-func newMessage(v ProtocolVersion, t Type) (Provider, error) {
-	var m Provider
+func newMessage(v ProtocolVersion, t Type) (IFace, error) {
+	var m IFace
 
 	switch t {
 	case CONNECT:
@@ -185,22 +185,11 @@ func newMessage(v ProtocolVersion, t Type) (Provider, error) {
 
 	m.setType(t)
 
-	//h := m.getHeader()
-	//
-	//h.version = v
-	//h.cb.encode = m.encodeMessage
-	//h.cb.decode = m.decodeMessage
-	//h.cb.size = m.size
-	//
-	//if v >= ProtocolV50 {
-	//	h.properties.properties = make(map[PropertyID]interface{})
-	//}
-
 	return m, nil
 }
 
 // Encode try encode packet with into newly allocated buffer
-func Encode(p Provider) ([]byte, error) {
+func Encode(p IFace) ([]byte, error) {
 	var sz int
 	var buf []byte
 	var err error
@@ -213,8 +202,8 @@ func Encode(p Provider) ([]byte, error) {
 	return buf, err
 }
 
-// Decode buf into message and return Provider type
-func Decode(v ProtocolVersion, buf []byte) (msg Provider, total int, err error) {
+// Decode buf into message and return IFace type
+func Decode(v ProtocolVersion, buf []byte) (msg IFace, total int, err error) {
 	defer func() {
 		// TODO(troian): this case might be improved
 		// Panic might be provided during message decode with malformed len

@@ -30,7 +30,7 @@ type Subscribe struct {
 	ops    []SubscriptionOptions
 }
 
-var _ Provider = (*Subscribe)(nil)
+var _ IFace = (*Subscribe)(nil)
 
 func newSubscribe() *Subscribe {
 	return &Subscribe{}
