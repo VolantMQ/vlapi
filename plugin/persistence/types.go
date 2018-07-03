@@ -87,6 +87,9 @@ type SystemState struct {
 	NodeName string
 }
 
+// PacketLoader application callback doing packed decode
+// when return true in first return packet will be deleted
+// if error presented load interrupted after current packet
 type PacketLoader func(interface{}, *PersistedPacket) (bool, error)
 
 // SessionLoader implemented by session manager to load persisted sessions when server starts
