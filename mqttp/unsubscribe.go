@@ -63,20 +63,31 @@ func (msg *UnSubscribe) SetPacketID(v IDType) {
 // decode reads from the io.Reader parameter until a full message is decoded, or
 // when io.Reader returns EOF or error. The first return value is the number of
 // bytes read from io.Reader. The second is error if decode encounters any problems.
-func (msg *UnSubscribe) decodeMessage(src []byte) (int, error) {
-	total := msg.decodePacketID(src)
+func (msg *UnSubscribe) decodeMessage(from []byte) (int, error) {
+	offset := msg.decodePacketID(from)
 
-	remLen := int(msg.remLen) - total
-	for remLen > 0 {
-		t, n, err := ReadLPBytes(src[total:])
-		total += n
+	remLen := int(msg.remLen) - offset
+
+	// V5.0
+	// [MQTT-3.10.2.1] UNSUBSCRIBE Properties
+	if msg.version >= ProtocolV50 {
+		n, err := msg.properties.decode(msg.Type(), from[offset:])
+		offset += n
 		if err != nil {
-			return total, err
+			return offset, err
+		}
+	}
+
+	for remLen > 0 {
+		t, n, err := ReadLPBytes(from[offset:])
+		offset += n
+		if err != nil {
+			return offset, err
 		}
 
 		// [MQTT-3.10.3-1]
 		if !utf8.Valid(t) {
-			return total, ErrMalformedTopic
+			return offset, ErrMalformedTopic
 		}
 
 		msg.topics = append(msg.topics, string(t))
@@ -93,7 +104,7 @@ func (msg *UnSubscribe) decodeMessage(src []byte) (int, error) {
 		return 0, rejectReason
 	}
 
-	return total, nil
+	return offset, nil
 }
 
 func (msg *UnSubscribe) encodeMessage(dst []byte) (int, error) {
