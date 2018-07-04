@@ -103,6 +103,9 @@ func (msg *Disconnect) encodeMessage(to []byte) (int, error) {
 				var n int
 				n, err = msg.properties.encode(to[offset:])
 				offset += n
+			} else {
+				to[offset] = 0
+				offset++
 			}
 		}
 	}
@@ -122,6 +125,8 @@ func (msg *Disconnect) size() int {
 			total++
 			if pLen > 1 {
 				total += int(pLen)
+			} else {
+				total++
 			}
 		}
 	}
