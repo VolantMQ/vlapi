@@ -52,11 +52,13 @@ type Connect struct {
 	clientID     []byte
 	username     []byte
 	password     []byte
-
-	will struct {
-		topic   string
-		message []byte
-	}
+	will         *Publish
+	// struct {
+	//	properties property
+	//	topic      string
+	//	message    []byte
+	//	msg        *Publish
+	//}
 }
 
 var _ IFace = (*Connect)(nil)
@@ -127,18 +129,14 @@ func (msg *Connect) SetClientID(v []byte) error {
 // If the Will Flag is set to 1, the Will Topic must be in the payload.
 // returns will topic, will message, will qos , will retain, will
 // if last param is false will is not set
-func (msg *Connect) Will() (string, []byte, QosType, bool, bool) {
-	return msg.will.topic,
-		msg.will.message,
-		QosType((msg.connectFlags & maskConnFlagWillQos) >> offsetConnFlagWillQoS),
-		(msg.connectFlags & maskConnFlagWillRetain) != 0,
-		(msg.connectFlags & maskConnFlagWill) != 0
+func (msg *Connect) Will() *Publish {
+	return msg.will
 }
 
 // SetWill state of message
-func (msg *Connect) SetWill(t string, m []byte, qos QosType, retain bool) error {
+func (msg *Connect) SetWill(m *Publish) error {
 	will := true
-	if len(t) == 0 || len(m) == 0 || !qos.IsValid() {
+	if m == nil || len(m.topic) == 0 || len(m.payload) == 0 || !m.QoS().IsValid() {
 		will = false
 	}
 
@@ -149,14 +147,13 @@ func (msg *Connect) SetWill(t string, m []byte, qos QosType, retain bool) error 
 		return ErrInvalidArgs
 	}
 
-	if retain {
+	if m.Retain() {
 		msg.connectFlags |= maskConnFlagWillRetain
 	}
 
-	msg.connectFlags |= byte(qos) << offsetConnFlagWillQoS
+	msg.connectFlags |= byte(m.QoS()) << offsetConnFlagWillQoS
 	msg.connectFlags |= maskConnFlagWill
-	msg.will.topic = t
-	msg.will.message = m
+	msg.will = m
 	return nil
 }
 
@@ -165,8 +162,7 @@ func (msg *Connect) ResetWill() {
 	msg.connectFlags &= ^maskConnFlagWill
 	msg.connectFlags &= ^maskConnFlagWillQos
 	msg.connectFlags &= ^maskConnFlagWillRetain
-	msg.will.topic = ""
-	msg.will.message = []byte{}
+	msg.will = nil
 }
 
 // Credentials returns user and password
@@ -278,6 +274,14 @@ func (msg *Connect) encodeMessage(to []byte) (int, error) {
 	}
 
 	if msg.willFlag() {
+		if msg.version >= ProtocolV50 {
+			// V5.0 [MQTT-3.1.3.2] Will Properties
+			n, err = msg.will.properties.encode(to[offset:])
+			offset += n
+			if err != nil {
+				return offset, err
+			}
+		}
 		// V3.1.1 [MQTT-3.1.3.2]
 		// V5.0   [MQTT-3.1.3.2]
 		n, err = WriteLPBytes(to[offset:], []byte(msg.will.topic))
@@ -288,7 +292,7 @@ func (msg *Connect) encodeMessage(to []byte) (int, error) {
 
 		// V3.1.1 [MQTT-3.1.3.3]
 		// V5.0   [MQTT-3.1.3.3]
-		n, err = WriteLPBytes(to[offset:], msg.will.message)
+		n, err = WriteLPBytes(to[offset:], msg.will.payload)
 		offset += n
 		if err != nil {
 			return offset, err
@@ -417,9 +421,10 @@ func (msg *Connect) decodeMessage(from []byte) (int, error) {
 		return offset, err
 	}
 
-	// V3.1.1  [MQTT-3.1.3-7]
+	// V3.1.1  [MQTT-3.1.3-7] Client Identifier (ClientID)
+	// v5.0    [MQTT-3.1.3.1]
 	// If the Client supplies a zero-byte ClientId, the Client MUST also set CleanSession to 1
-	if len(msg.clientID) == 0 && !msg.IsClean() {
+	if len(msg.clientID) == 0 && msg.version < ProtocolV50 && !msg.IsClean() {
 		return offset, CodeRefusedIdentifierRejected
 	}
 
@@ -438,26 +443,46 @@ func (msg *Connect) decodeMessage(from []byte) (int, error) {
 	}
 
 	if msg.willFlag() {
+		msg.will = NewPublish(msg.version)
+
+		msg.will.SetDup(false)
+		msg.will.SetQoS(msg.willQos())
+		msg.will.SetRetain(msg.willRetain())
+
 		// V3.1.1 [MQTT-3.1.3.2]
 		// V5.0   [MQTT-3.1.3.2]
 		var buf []byte
 
-		if buf, n, err = ReadLPBytes(from[offset:]); err != nil {
-			return offset + n, err
+		// V5.0   [MQTT-3.1.3.2] Will Properties
+		if msg.version >= ProtocolV50 {
+			n, err = msg.will.properties.decode(msg.Type(), from[offset:])
+			offset += n
+			if err != nil {
+				return offset, err
+			}
 		}
-		offset += n
 
-		msg.will.topic = string(buf)
-
-		// V3.1.1 [3.1.3.3]
+		// Will topic
+		// V3.1.1 [3.1.3.2]
 		// V5.0   [3.1.3.3]
 		if buf, n, err = ReadLPBytes(from[offset:]); err != nil {
 			return offset + n, err
 		}
 		offset += n
 
-		msg.will.message = make([]byte, len(buf))
-		copy(msg.will.message, buf)
+		msg.will.SetTopic(string(buf))
+
+		// Will payload
+		// V3.1.1 [3.1.3.3]
+		// V5.0   [3.1.3.4]
+		if buf, n, err = ReadLPBytes(from[offset:]); err != nil {
+			return offset + n, err
+		}
+		offset += n
+
+		msg.will.payload = make([]byte, len(buf))
+		copy(msg.will.payload, buf)
+
 	}
 
 	// According to the 3.1 spec, it's possible that the usernameFlag is set,
@@ -512,12 +537,16 @@ func (msg *Connect) size() int {
 
 	// Add the will topic and will message length, and the length prefixes
 	if msg.willFlag() {
+		if msg.version >= ProtocolV50 {
+			// the length prefix of will topic
+			total += msg.will.properties.FullLen()
+		}
 		//       the length prefix of will topic
 		//       |            length of will topic
-		//       |            |            the length prefix of will message
-		//       |            |            |            length of will message
+		//       |            |            the length prefix of will payload
+		//       |            |            |            length of will payload
 		//       |            |            |            |
-		total += 2 + len(msg.will.topic) + 2 + len(msg.will.message)
+		total += 2 + len(msg.will.topic) + 2 + len(msg.will.payload)
 	}
 
 	// Add the username length
