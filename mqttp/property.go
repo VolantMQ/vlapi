@@ -135,7 +135,7 @@ func (t *propertyToType) AsBinary() ([]byte, error) {
 // property implements Property
 type property struct {
 	properties map[PropertyID]interface{}
-	len        uint32
+	len        int
 }
 
 // nolint: golint
@@ -329,13 +329,13 @@ func (p *property) reset() {
 }
 
 // Len of the encoded property field. Does not include size property len prefix
-func (p *property) Len() (uint32, int) {
-	return p.len, uvarintCalc(p.len)
+func (p *property) Len() (int, int) {
+	return p.len, uvarintCalc(uint32(p.len))
 }
 
 // FullLen len of the property len prefix + size of properties
-func (p *property) FullLen() uint32 {
-	return p.len + uint32(uvarintCalc(p.len))
+func (p *property) FullLen() int {
+	return p.len + uvarintCalc(uint32(p.len))
 }
 
 // Set property value
@@ -348,7 +348,7 @@ func (p *property) Set(t Type, id PropertyID, val interface{}) error {
 
 	fn := propertyCalcLen[propertyTypeMap[id]]
 	l, _ := fn(id, val)
-	p.len += uint32(l)
+	p.len += l
 	p.properties[id] = val
 
 	return nil
@@ -445,7 +445,7 @@ func (p *property) decode(t Type, from []byte) (int, error) {
 			return offset, CodeProtocolError
 		}
 
-		p.len += uint32(count)
+		p.len += count
 		pLen -= uint32(count)
 	}
 
@@ -760,6 +760,8 @@ func encodeByte(id PropertyID, val interface{}, to []byte) (int, error) {
 		for _, v := range valueType {
 			offset += encode(v, to[offset:])
 		}
+	default:
+		panic("unexpected property type")
 	}
 
 	return offset, nil
@@ -783,6 +785,8 @@ func encodeShort(id PropertyID, val interface{}, to []byte) (int, error) {
 		for _, v := range valueType {
 			offset += encode(v, to[offset:])
 		}
+	default:
+		panic("unexpected property type")
 	}
 
 	return offset, nil
@@ -806,6 +810,8 @@ func encodeInt(id PropertyID, val interface{}, to []byte) (int, error) {
 		for _, v := range valueType {
 			offset += encode(v, to[offset:])
 		}
+	default:
+		panic("unexpected property type")
 	}
 
 	return offset, nil
@@ -828,6 +834,8 @@ func encodeVarInt(id PropertyID, val interface{}, to []byte) (int, error) {
 		for _, v := range valueType {
 			offset += encode(v, to[offset:])
 		}
+	default:
+		panic("unexpected property type")
 	}
 
 	return offset, nil
@@ -851,6 +859,8 @@ func encodeString(id PropertyID, val interface{}, to []byte) (int, error) {
 		for _, v := range valueType {
 			offset += encode(v, to[offset:])
 		}
+	default:
+		panic("unexpected property type")
 	}
 
 	return offset, nil
@@ -878,6 +888,8 @@ func encodeStringPair(id PropertyID, val interface{}, to []byte) (int, error) {
 		for _, v := range valueType {
 			offset += encode(v, to[offset:])
 		}
+	default:
+		panic("unexpected property type")
 	}
 
 	return offset, nil
@@ -901,6 +913,8 @@ func encodeBinary(id PropertyID, val interface{}, to []byte) (int, error) {
 		for _, v := range valueType {
 			offset += encode(v, to[offset:])
 		}
+	default:
+		panic("unexpected property type")
 	}
 	return offset, nil
 }
