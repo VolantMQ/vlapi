@@ -43,11 +43,15 @@ func NewSubscribe(v ProtocolVersion) *Subscribe {
 	return p
 }
 
-// RangeTopics loop through list of topics
-func (msg *Subscribe) RangeTopics(fn func(string, SubscriptionOptions)) {
+// ForEachTopic loop through list of topics
+func (msg *Subscribe) ForEachTopic(fn func(string, SubscriptionOptions) error) error {
 	for i, t := range msg.topics {
-		fn(t, msg.ops[i])
+		if err := fn(t, msg.ops[i]); err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
 // AddTopic adds a single topic to the message, along with the corresponding QoS.
