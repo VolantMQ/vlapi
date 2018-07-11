@@ -322,8 +322,7 @@ func (s *sessions) LoadForEach(loader persistence.SessionLoader, context interfa
 					st.Expire = &persistence.SessionDelays{
 						Since:    string(expire.Get([]byte("since"))),
 						ExpireIn: string(expire.Get([]byte("expireIn"))),
-						WillIn:   string(expire.Get([]byte("willIn"))),
-						WillData: expire.Get([]byte("willData")),
+						Will:     expire.Get([]byte("will")),
 					}
 				}
 			}
@@ -406,13 +405,8 @@ func (s *sessions) StateStore(id []byte, state *persistence.SessionState) error 
 				}
 			}
 
-			if len(state.Expire.WillIn) > 0 {
-				if err = expire.Put([]byte("willIn"), []byte(state.Expire.WillIn)); err != nil {
-					return err
-				}
-			}
-			if len(state.Expire.WillData) > 0 {
-				if err = expire.Put([]byte("willData"), state.Expire.WillData); err != nil {
+			if len(state.Expire.Will) > 0 {
+				if err = expire.Put([]byte("will"), state.Expire.Will); err != nil {
 					return err
 				}
 			}
@@ -455,13 +449,8 @@ func (s *sessions) ExpiryStore(id []byte, exp *persistence.SessionDelays) error 
 			}
 		}
 
-		if len(exp.WillIn) > 0 {
-			if err = expire.Put([]byte("willIn"), []byte(exp.WillIn)); err != nil {
-				return err
-			}
-		}
-		if len(exp.WillData) > 0 {
-			if err = expire.Put([]byte("willData"), exp.WillData); err != nil {
+		if len(exp.Will) > 0 {
+			if err = expire.Put([]byte("will"), exp.Will); err != nil {
 				return err
 			}
 		}

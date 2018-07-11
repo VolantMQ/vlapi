@@ -61,10 +61,8 @@ type PersistedPackets struct {
 type SessionDelays struct {
 	Since    string
 	ExpireIn string
-	// WillIn timestamp when will publish must occur
-	WillIn string
-	// WillData encoded packet
-	WillData []byte
+	// Will encoded packet
+	Will []byte
 }
 
 // SessionBase ...
