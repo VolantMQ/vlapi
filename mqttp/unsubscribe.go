@@ -14,15 +14,11 @@
 
 package mqttp
 
-import (
-	"unicode/utf8"
-)
-
 // UnSubscribe An UNSUBSCRIBE Packet is sent by the Client to the Server, to unsubscribe from topics.
 type UnSubscribe struct {
 	header
 
-	topics []string
+	topics []*Topic
 }
 
 var _ IFace = (*UnSubscribe)(nil)
@@ -39,17 +35,18 @@ func NewUnSubscribe(v ProtocolVersion) *UnSubscribe {
 }
 
 // Topics returns a list of topics sent by the Client.
-func (msg *UnSubscribe) Topics() []string {
-	return msg.topics
+func (msg *UnSubscribe) ForEachTopic(fn func(*Topic) error) error {
+	for _, t := range msg.topics {
+		if err := fn(t); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // AddTopic adds a single topic to the message.
-func (msg *UnSubscribe) AddTopic(topic string) error {
-	// [MQTT-3.8.3-1]
-	if !utf8.Valid([]byte(topic)) {
-		return ErrMalformedTopic
-	}
-
+func (msg *UnSubscribe) AddTopic(topic *Topic) error {
 	msg.topics = append(msg.topics, topic)
 
 	return nil
@@ -85,12 +82,12 @@ func (msg *UnSubscribe) decodeMessage(from []byte) (int, error) {
 			return offset, err
 		}
 
-		// [MQTT-3.10.3-1]
-		if !utf8.Valid(t) {
-			return offset, ErrMalformedTopic
+		var topic *Topic
+		if topic, err = NewTopic(t); err != nil {
+			return offset, err
 		}
 
-		msg.topics = append(msg.topics, string(t))
+		msg.topics = append(msg.topics, topic)
 
 		remLen = remLen - n - 1
 	}
@@ -123,7 +120,7 @@ func (msg *UnSubscribe) encodeMessage(dst []byte) (int, error) {
 	total := msg.encodePacketID(dst)
 
 	for _, t := range msg.topics {
-		n, err = WriteLPBytes(dst[total:], []byte(t))
+		n, err = WriteLPBytes(dst[total:], t.full)
 		total += n
 		if err != nil {
 			return total, err
@@ -144,7 +141,7 @@ func (msg *UnSubscribe) size() int {
 	total := 2
 
 	for _, t := range msg.topics {
-		total += 2 + len(t)
+		total += 2 + len(t.full)
 	}
 
 	return total

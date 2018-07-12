@@ -132,7 +132,7 @@ func (msg *Publish) SetPublishID(id uintptr) {
 
 // Set topic/payload/qos/retained/bool
 func (msg *Publish) Set(t string, p []byte, q QosType, r bool, d bool) error {
-	if !ValidTopic(t) {
+	if !ValidTopic([]byte(t)) {
 		return ErrInvalidTopic
 	}
 
@@ -223,7 +223,7 @@ func (msg *Publish) Topic() string {
 // SetTopic sets the the topic name that identifies the information channel to which
 // payload data is published. An error is returned if ValidTopic() is falbase.
 func (msg *Publish) SetTopic(v string) error {
-	if (msg.version < ProtocolV50 && len(v) == 0) || !ValidTopic(v) {
+	if (msg.version < ProtocolV50 && len(v) == 0) || !ValidTopic([]byte(v)) {
 		return ErrInvalidTopic
 	}
 
@@ -285,7 +285,7 @@ func (msg *Publish) decodeMessage(from []byte) (int, error) {
 
 	if len(buf) == 0 && msg.version < ProtocolV50 {
 		return offset, CodeRefusedServerUnavailable
-	} else if !ValidTopic(string(buf)) {
+	} else if !ValidTopic(buf) {
 		rejectCode := CodeRefusedServerUnavailable
 		if msg.version == ProtocolV50 {
 			rejectCode = CodeInvalidTopicName
@@ -360,7 +360,7 @@ func (msg *Publish) decodeMessage(from []byte) (int, error) {
 }
 
 func (msg *Publish) encodeMessage(to []byte) (int, error) {
-	if !ValidTopic(msg.topic) {
+	if !ValidTopic([]byte(msg.topic)) {
 		return 0, ErrInvalidTopic
 	}
 

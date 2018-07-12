@@ -29,10 +29,14 @@ func TestUnSubscribeMessageFields(t *testing.T) {
 
 	msg.SetPacketID(100)
 	id, _ := msg.ID()
-	require.Equal(t, IDType(100), id, "Error setting packet ID.")
+	require.Equal(t, IDType(100), id, "Error setting packet ID")
 
-	msg.AddTopic("/a/b/#/c") // nolint: errcheck
-	require.Equal(t, 1, len(msg.topics), "Error adding topic.")
+	var topic *Topic
+	topic, err = NewTopic([]byte("/a/b/c/#"))
+	require.NoError(t, err)
+
+	msg.AddTopic(topic) // nolint: errcheck
+	require.Equal(t, 1, len(msg.topics), "Error adding topic")
 	//
 	//msg.AddTopic("/a/b/#/c") // nolint: errcheck
 	//require.Equal(t, 1, len(msg.topics), "Error adding duplicate topic.")
@@ -49,22 +53,22 @@ func TestUnSubscribeMessageDecode(t *testing.T) {
 		'v', 'o', 'l', 'a', 'n', 't', 'm', 'q',
 		0, // topic name MSB (0)
 		8, // topic name LSB (8)
-		'/', 'a', '/', 'b', '/', '#', '/', 'c',
+		'/', 'a', '/', 'b', '/', 'c', '/', '#',
 		0,  // topic name MSB (0)
 		10, // topic name LSB (10)
-		'/', 'a', '/', 'b', '/', '#', '/', 'c', 'd', 'd',
+		'/', 'a', '/', 'b', '/', 'c', 'd', 'd', '/', '#',
 	}
 
 	m, n, err := Decode(ProtocolV311, buf)
-	require.NoError(t, err, "Error decoding message.")
+	require.NoError(t, err, "Error decoding message")
 	msg, ok := m.(*UnSubscribe)
 
 	require.Equal(t, true, ok, "Invalid message type")
 
-	require.NoError(t, err, "Error decoding message.")
-	require.Equal(t, len(buf), n, "Error decoding message.")
-	require.Equal(t, UNSUBSCRIBE, msg.Type(), "Error decoding message.")
-	require.Equal(t, 3, len(msg.topics), "Error decoding topics.")
+	require.NoError(t, err, "Error decoding message")
+	require.Equal(t, len(buf), n, "Error decoding message")
+	require.Equal(t, UNSUBSCRIBE, msg.Type(), "Error decoding message")
+	require.Equal(t, 3, len(msg.topics), "Error decoding topics")
 }
 
 // test empty topic list
@@ -92,10 +96,10 @@ func TestUnSubscribeMessageEncode(t *testing.T) {
 		'v', 'o', 'l', 'a', 'n', 't', 'm', 'q',
 		0, // topic name MSB (0)
 		8, // topic name LSB (8)
-		'/', 'a', '/', 'b', '/', '#', '/', 'c',
+		'/', 'a', '/', 'b', '/', 'c', '/', '#',
 		0,  // topic name MSB (0)
 		10, // topic name LSB (10)
-		'/', 'a', '/', 'b', '/', '#', '/', 'c', 'd', 'd',
+		'/', 'a', '/', 'b', '/', 'c', 'd', 'd', '/', '#',
 	}
 
 	m, err := New(ProtocolV311, UNSUBSCRIBE)
@@ -105,15 +109,27 @@ func TestUnSubscribeMessageEncode(t *testing.T) {
 	require.True(t, ok, "Couldn't cast message type")
 
 	msg.SetPacketID(7)
-	msg.AddTopic("volantmq")   // nolint: errcheck
-	msg.AddTopic("/a/b/#/c")   // nolint: errcheck
-	msg.AddTopic("/a/b/#/cdd") // nolint: errcheck
+
+	var topic *Topic
+
+	topic, err = NewTopic([]byte("volantmq"))
+	require.NoError(t, err)
+
+	msg.AddTopic(topic) // nolint: errcheck
+
+	topic, err = NewTopic([]byte("/a/b/c/#"))
+	require.NoError(t, err)
+	msg.AddTopic(topic) // nolint: errcheck
+
+	topic, err = NewTopic([]byte("/a/b/cdd/#"))
+	require.NoError(t, err)
+	msg.AddTopic(topic) // nolint: errcheck
 
 	dst := make([]byte, 100)
 	n, err := msg.Encode(dst)
 
-	require.NoError(t, err, "Error encoding message.")
-	require.Equal(t, len(buf), n, "Error encoding message.")
+	require.NoError(t, err, "Error encoding message")
+	require.Equal(t, len(buf), n, "Error encoding message")
 
 	//msg1 := NewUnSubscribeMessage()
 
@@ -122,11 +138,11 @@ func TestUnSubscribeMessageEncode(t *testing.T) {
 	msg1, ok := m1.(*UnSubscribe)
 	require.Equal(t, true, ok, "Invalid message type")
 
-	require.NoError(t, err, "Error decoding message.")
-	require.Equal(t, len(buf), n, "Error decoding message.")
-	require.Equal(t, 3, len(msg1.topics), "Error decoding message.")
+	require.NoError(t, err, "Error decoding message")
+	require.Equal(t, len(buf), n, "Error decoding message")
+	require.Equal(t, 3, len(msg1.topics), "Error decoding message")
 
-	//require.Equal(t, buf, dst[:n], "Error decoding message.")
+	//require.Equal(t, buf, dst[:n], "Error decoding message")
 }
 
 // test to ensure encoding and decoding are the same
@@ -142,14 +158,14 @@ func TestUnSubscribeDecodeEncodeEquiv(t *testing.T) {
 		'v', 'o', 'l', 'a', 'n', 't', 'm', 'q',
 		0, // topic name MSB (0)
 		8, // topic name LSB (8)
-		'/', 'a', '/', 'b', '/', '#', '/', 'c',
+		'/', 'a', '/', 'b', '/', 'c', '/', '#',
 		0,  // topic name MSB (0)
 		10, // topic name LSB (10)
-		'/', 'a', '/', 'b', '/', '#', '/', 'c', 'd', 'd',
+		'/', 'a', '/', 'b', '/', 'c', 'd', 'd', '/', '#',
 	}
 
 	m, n, err := Decode(ProtocolV311, buf)
-	require.NoError(t, err, "Error decoding message.")
+	require.NoError(t, err, "Error decoding message")
 	msg, ok := m.(*UnSubscribe)
 	require.Equal(t, true, ok, "Invalid message type")
 	require.NoError(t, err, "Error decoding message")
@@ -158,7 +174,7 @@ func TestUnSubscribeDecodeEncodeEquiv(t *testing.T) {
 	dst := make([]byte, 100)
 	n2, err := msg.Encode(dst)
 
-	require.NoError(t, err, "Error encoding message.")
+	require.NoError(t, err, "Error encoding message")
 	require.Equal(t, len(buf), n2, "Raw message length does not match")
 	require.Equal(t, 3, len(msg.topics), "Topics count does not match")
 

@@ -26,8 +26,7 @@ import (
 // which the Server can send Application Messages to the Client.
 type Subscribe struct {
 	header
-	topics []string
-	ops    []SubscriptionOptions
+	topics []*Topic
 }
 
 var _ IFace = (*Subscribe)(nil)
@@ -44,9 +43,9 @@ func NewSubscribe(v ProtocolVersion) *Subscribe {
 }
 
 // ForEachTopic loop through list of topics
-func (msg *Subscribe) ForEachTopic(fn func(string, SubscriptionOptions) error) error {
-	for i, t := range msg.topics {
-		if err := fn(t, msg.ops[i]); err != nil {
+func (msg *Subscribe) ForEachTopic(fn func(*Topic) error) error {
+	for _, t := range msg.topics {
+		if err := fn(t); err != nil {
 			return err
 		}
 	}
@@ -56,25 +55,8 @@ func (msg *Subscribe) ForEachTopic(fn func(string, SubscriptionOptions) error) e
 
 // AddTopic adds a single topic to the message, along with the corresponding QoS.
 // An error is returned if QoS is invalid.
-func (msg *Subscribe) AddTopic(topic string, ops SubscriptionOptions) error {
-	if msg.version == ProtocolV50 {
-		if byte(ops)&maskSubscriptionReserved != 0 {
-			return ErrInvalidArgs
-		}
-	} else {
-		if !QosType(ops).IsValid() {
-			return ErrInvalidQoS
-		}
-	}
-
-	// [MQTT-3.8.3-1]
-	if !utf8.Valid([]byte(topic)) {
-		return ErrMalformedTopic
-	}
-
+func (msg *Subscribe) AddTopic(topic *Topic) error {
 	msg.topics = append(msg.topics, topic)
-	msg.ops = append(msg.ops, ops)
-
 	return nil
 }
 
@@ -116,21 +98,16 @@ func (msg *Subscribe) decodeMessage(from []byte) (int, error) {
 		subsOptions := SubscriptionOptions(from[offset])
 		offset++
 
-		if msg.version == ProtocolV50 && (byte(subsOptions)&maskSubscriptionReserved) != 0 {
+		if msg.version == ProtocolV50 && (subsOptions.Raw()&maskSubscriptionReserved) != 0 {
 			return offset, CodeProtocolError
 		}
 
-		// [MQTT-3-8.3-4]
-		if !subsOptions.QoS().IsValid() {
-			rejectReason := CodeProtocolError
-			if msg.version <= ProtocolV50 {
-				rejectReason = CodeRefusedServerUnavailable
-			}
-			return offset, rejectReason
+		var topic *Topic
+		if topic, err = NewSubscribeTopic(t, subsOptions); err != nil {
+			return offset, CodeProtocolError
 		}
 
-		msg.topics = append(msg.topics, string(t))
-		msg.ops = append(msg.ops, subsOptions)
+		msg.topics = append(msg.topics, topic)
 
 		remLen = remLen - n - 1
 	}
@@ -164,14 +141,14 @@ func (msg *Subscribe) encodeMessage(to []byte) (int, error) {
 		}
 	}
 
-	for i, t := range msg.topics {
-		n, err := WriteLPBytes(to[offset:], []byte(t))
+	for _, t := range msg.topics {
+		n, err := WriteLPBytes(to[offset:], t.full)
 		offset += n
 		if err != nil {
 			return offset, err
 		}
 
-		to[offset] = byte(msg.ops[i])
+		to[offset] = byte(t.ops.Raw())
 		offset++
 	}
 
@@ -188,7 +165,7 @@ func (msg *Subscribe) size() int {
 	}
 
 	for _, t := range msg.topics {
-		total += 2 + len(t) + 1
+		total += 2 + len(t.full) + 1
 	}
 
 	return total

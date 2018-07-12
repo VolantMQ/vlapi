@@ -2,7 +2,6 @@ package mqttp
 
 import (
 	"fmt"
-	"strings"
 	"unicode/utf8"
 )
 
@@ -38,6 +37,10 @@ type TopicQos map[string]SubscriptionOptions
 // QoS quality of service
 func (s SubscriptionOptions) QoS() QosType {
 	return QosType(byte(s) & maskSubscriptionQoS)
+}
+
+func (s SubscriptionOptions) Raw() byte {
+	return byte(s)
 }
 
 // NL No Local option
@@ -248,8 +251,6 @@ func Decode(v ProtocolVersion, buf []byte) (msg IFace, total int, err error) {
 // ValidTopic checks the topic, which is a slice of bytes, to see if it's valid. Topic is
 // considered valid if it's longer than 0 bytes, and doesn't contain any wildcard characters
 // such as + and #.
-func ValidTopic(topic string) bool {
-	return utf8.Valid([]byte(topic)) &&
-		!strings.Contains(topic, "#") &&
-		!strings.Contains(topic, "+")
+func ValidTopic(topic []byte) bool {
+	return utf8.Valid(topic) && TopicPublishRegexp.Match(topic)
 }
