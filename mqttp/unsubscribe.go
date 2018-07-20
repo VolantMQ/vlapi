@@ -34,7 +34,8 @@ func NewUnSubscribe(v ProtocolVersion) *UnSubscribe {
 	return p
 }
 
-// Topics returns a list of topics sent by the Client.
+// ForEachTopic iterate over all sent by the Client
+// if fn return error iteration stopped
 func (msg *UnSubscribe) ForEachTopic(fn func(*Topic) error) error {
 	for _, t := range msg.topics {
 		if err := fn(t); err != nil {

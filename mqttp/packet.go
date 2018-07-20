@@ -39,6 +39,7 @@ func (s SubscriptionOptions) QoS() QosType {
 	return QosType(byte(s) & maskSubscriptionQoS)
 }
 
+// Raw just return byte
 func (s SubscriptionOptions) Raw() byte {
 	return byte(s)
 }

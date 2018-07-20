@@ -19,7 +19,7 @@ const (
 )
 
 var (
-	// TopicSubscribeRegexp regular expression that all subscriptions must be validated
+	// TopicFilterRegexp regular expression that all subscriptions must be validated
 	TopicFilterRegexp = regexp.MustCompile(`^(([^+#]*|\+)(/([^+#]*|\+))*(/#)?|#)$`)
 
 	// TopicPublishRegexp regular expression that all publish to topic must be validated
@@ -46,6 +46,7 @@ const (
 	MaxLPString = 65535
 )
 
+// Topic container encapsulates topic verification
 type Topic struct {
 	full         []byte
 	filter       []byte
@@ -54,6 +55,7 @@ type Topic struct {
 	ops          SubscriptionOptions
 }
 
+// NewTopic allocate new topic
 func NewTopic(topic []byte) (*Topic, error) {
 	if len(topic) == 0 {
 		return nil, CodeMalformedPacket
@@ -94,6 +96,7 @@ func NewTopic(topic []byte) (*Topic, error) {
 	return t, nil
 }
 
+// NewSubscribeTopic allocate new subscription topic
 func NewSubscribeTopic(topic []byte, ops SubscriptionOptions) (*Topic, error) {
 	if !ops.QoS().IsValid() {
 		return nil, CodeProtocolError
@@ -107,26 +110,34 @@ func NewSubscribeTopic(topic []byte, ops SubscriptionOptions) (*Topic, error) {
 	return t, nil
 }
 
+// Full return raw topic
 func (t *Topic) Full() string {
 	return string(t.full)
 }
 
+// Topic return filter and subscription options
 func (t *Topic) Topic() (string, SubscriptionOptions) {
 	return string(t.filter), t.ops
 }
 
+// Filter return topic filter
 func (t *Topic) Filter() string {
 	return string(t.filter)
 }
 
+// Ops return subscription options
 func (t *Topic) Ops() SubscriptionOptions {
 	return t.ops
 }
 
+// DollarPrefix return $ prefix
+// if not exist returns empty string
 func (t *Topic) DollarPrefix() string {
 	return string(t.dollarPrefix)
 }
 
+// ShareName return share name
+// if not exists returns empty string
 func (t *Topic) ShareName() string {
 	return string(t.shareName)
 }
