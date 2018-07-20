@@ -67,6 +67,10 @@ func (msg *Subscribe) SetPacketID(v IDType) {
 
 // decode message
 func (msg *Subscribe) decodeMessage(from []byte) (int, error) {
+	if len(from) < 2 {
+		return 0, CodeProtocolError
+	}
+
 	offset := msg.decodePacketID(from)
 
 	// v5 [MQTT-3.1.2.11] specifies properties in variable header
@@ -79,6 +83,7 @@ func (msg *Subscribe) decodeMessage(from []byte) (int, error) {
 	}
 
 	remLen := int(msg.remLen) - offset
+
 	for remLen > 0 {
 		t, n, err := ReadLPBytes(from[offset:])
 		offset += n
@@ -93,6 +98,10 @@ func (msg *Subscribe) decodeMessage(from []byte) (int, error) {
 				rejectReason = CodeRefusedServerUnavailable
 			}
 			return 0, rejectReason
+		}
+
+		if len(from[offset:]) < 1 {
+			return offset, CodeProtocolError
 		}
 
 		subsOptions := SubscriptionOptions(from[offset])
