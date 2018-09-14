@@ -26,13 +26,13 @@ var (
 	sessionsCount       = []byte("count")
 )
 
-// Config configuration of the BoltDB backend
+// Config configuration of the bboltDB backend
 type Config struct {
 	File string `json:"file"`
 }
 
 type dbStatus struct {
-	db   *bolt.DB // nolint: structcheck
+	db   *bbolt.DB // nolint: structcheck
 	done chan struct{}
 }
 
@@ -84,7 +84,7 @@ func Load(c interface{}, params *vlplugin.SysParams) (interface{}, error) {
 				return nil, err
 			}
 		} else if !stat.IsDir() {
-			return nil, errors.New("persistence.boltdb: path [" + dir + "] is not directory")
+			return nil, errors.New("persistence.bboltdb: path [" + dir + "] is not directory")
 		}
 	}
 
@@ -97,11 +97,11 @@ func Load(c interface{}, params *vlplugin.SysParams) (interface{}, error) {
 
 	var err error
 
-	if persist.db, err = bolt.Open(config.File, 0600, nil); err != nil {
+	if persist.db, err = bbolt.Open(config.File, 0600, nil); err != nil {
 		return nil, err
 	}
 
-	err = persist.db.Update(func(tx *bolt.Tx) error {
+	err = persist.db.Update(func(tx *bbolt.Tx) error {
 		for _, b := range initialBuckets {
 			if _, e := tx.CreateBucketIfNotExists(b); e != nil {
 				return e

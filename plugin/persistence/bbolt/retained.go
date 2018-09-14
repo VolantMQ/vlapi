@@ -18,7 +18,7 @@ type retained struct {
 func (r *retained) Load() ([]*persistence.PersistedPacket, error) {
 	var res []*persistence.PersistedPacket
 
-	err := r.db.View(func(tx *bolt.Tx) error {
+	err := r.db.View(func(tx *bbolt.Tx) error {
 		bucket := tx.Bucket(bucketRetained)
 
 		return bucket.ForEach(func(k, v []byte) error {
@@ -40,7 +40,7 @@ func (r *retained) Load() ([]*persistence.PersistedPacket, error) {
 
 // Store
 func (r *retained) Store(packets []*persistence.PersistedPacket) error {
-	return r.db.Update(func(tx *bolt.Tx) error {
+	return r.db.Update(func(tx *bbolt.Tx) error {
 		tx.DeleteBucket(bucketRetained) // nolint: errcheck
 		bucket, err := tx.CreateBucket(bucketRetained)
 		if err != nil {
@@ -71,7 +71,7 @@ func (r *retained) Store(packets []*persistence.PersistedPacket) error {
 
 // Wipe
 func (r *retained) Wipe() error {
-	return r.db.Update(func(tx *bolt.Tx) error {
+	return r.db.Update(func(tx *bbolt.Tx) error {
 		if err := tx.DeleteBucket(bucketRetained); err != nil {
 			return err
 		}
