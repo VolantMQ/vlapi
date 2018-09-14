@@ -20,7 +20,7 @@ type sessions struct {
 var _ persistence.Sessions = (*sessions)(nil)
 
 func (s *sessions) init() error {
-	return s.db.Update(func(tx *bolt.Tx) error {
+	return s.db.Update(func(tx *bbolt.Tx) error {
 		sessions := tx.Bucket(bucketSessions)
 		if sessions == nil {
 			return persistence.ErrNotInitialized
@@ -38,7 +38,7 @@ func (s *sessions) init() error {
 }
 
 func (s *sessions) Exists(id []byte) bool {
-	err := s.db.View(func(tx *bolt.Tx) error {
+	err := s.db.View(func(tx *bbolt.Tx) error {
 		sessions := tx.Bucket(bucketSessions)
 		if sessions == nil {
 			return persistence.ErrNotInitialized
@@ -46,7 +46,7 @@ func (s *sessions) Exists(id []byte) bool {
 
 		ses := sessions.Bucket(id)
 		if ses == nil {
-			return bolt.ErrBucketNotFound
+			return bbolt.ErrBucketNotFound
 		}
 
 		return nil
@@ -57,7 +57,7 @@ func (s *sessions) Exists(id []byte) bool {
 
 func (s *sessions) Count() uint64 {
 	var count uint64
-	s.db.View(func(tx *bolt.Tx) error { // nolint: errcheck
+	s.db.View(func(tx *bbolt.Tx) error { // nolint: errcheck
 		sessions := tx.Bucket(bucketSessions)
 
 		val := sessions.Get(sessionsCount)
@@ -72,7 +72,7 @@ func (s *sessions) Count() uint64 {
 }
 
 func (s *sessions) SubscriptionsStore(id []byte, data []byte) error {
-	return s.db.Update(func(tx *bolt.Tx) error {
+	return s.db.Update(func(tx *bbolt.Tx) error {
 		sessions := tx.Bucket(bucketSessions)
 		if sessions == nil {
 			return persistence.ErrNotInitialized
@@ -88,7 +88,7 @@ func (s *sessions) SubscriptionsStore(id []byte, data []byte) error {
 }
 
 func (s *sessions) SubscriptionsDelete(id []byte) error {
-	return s.db.Update(func(tx *bolt.Tx) error {
+	return s.db.Update(func(tx *bbolt.Tx) error {
 		sessions := tx.Bucket(bucketSessions)
 		if sessions == nil {
 			return persistence.ErrNotInitialized
@@ -128,7 +128,7 @@ func (s *sessions) PacketsForEachUnAck(id []byte, ctx interface{}, load persiste
 }
 
 func (s *sessions) packetsForEach(id []byte, ctx interface{}, load persistence.PacketLoader, bucket []byte) error {
-	return s.db.Update(func(tx *bolt.Tx) error {
+	return s.db.Update(func(tx *bbolt.Tx) error {
 		root := tx.Bucket(bucketSessions)
 		if root == nil {
 			return persistence.ErrNotInitialized
@@ -192,7 +192,7 @@ func (s *sessions) PacketCountUnAck(id []byte) (int, error) {
 func (s *sessions) packetCount(id []byte, bucket []byte) (int, error) {
 	var count int
 
-	err := s.db.View(func(tx *bolt.Tx) error {
+	err := s.db.View(func(tx *bbolt.Tx) error {
 		root := tx.Bucket(bucketSessions)
 		if root == nil {
 			return persistence.ErrNotInitialized
@@ -222,7 +222,7 @@ func (s *sessions) packetCount(id []byte, bucket []byte) (int, error) {
 }
 
 func (s *sessions) PacketsStore(id []byte, packets persistence.PersistedPackets) error {
-	return s.db.Update(func(tx *bolt.Tx) error {
+	return s.db.Update(func(tx *bbolt.Tx) error {
 		if len(packets.UnAck) > 0 {
 			if err := s.packetsStore(tx, id, bucketPacketsUnAck, packets.UnAck); err != nil {
 				return err
@@ -246,24 +246,24 @@ func (s *sessions) PacketsStore(id []byte, packets persistence.PersistedPackets)
 }
 
 func (s *sessions) PacketStoreQoS0(id []byte, pkt *persistence.PersistedPacket) error {
-	return s.db.Update(func(tx *bolt.Tx) error {
+	return s.db.Update(func(tx *bbolt.Tx) error {
 		return s.packetsStore(tx, id, bucketPacketsQoS0, []*persistence.PersistedPacket{pkt})
 	})
 }
 
 func (s *sessions) PacketStoreQoS12(id []byte, pkt *persistence.PersistedPacket) error {
-	return s.db.Update(func(tx *bolt.Tx) error {
+	return s.db.Update(func(tx *bbolt.Tx) error {
 		return s.packetsStore(tx, id, bucketPacketsQoS12, []*persistence.PersistedPacket{pkt})
 	})
 }
 
 func (s *sessions) PacketStoreUnAck(id []byte, pkt *persistence.PersistedPacket) error {
-	return s.db.Update(func(tx *bolt.Tx) error {
+	return s.db.Update(func(tx *bbolt.Tx) error {
 		return s.packetsStore(tx, id, bucketPacketsUnAck, []*persistence.PersistedPacket{pkt})
 	})
 }
 
-func (s *sessions) packetsStore(tx *bolt.Tx, id []byte, bucket []byte, packets []*persistence.PersistedPacket) error {
+func (s *sessions) packetsStore(tx *bbolt.Tx, id []byte, bucket []byte, packets []*persistence.PersistedPacket) error {
 	buck, err := createPacketsBucket(tx, id, bucket)
 	if err != nil {
 		return err
@@ -279,7 +279,7 @@ func (s *sessions) packetsStore(tx *bolt.Tx, id []byte, bucket []byte, packets [
 }
 
 func (s *sessions) PacketsDelete(id []byte) error {
-	return s.db.Update(func(tx *bolt.Tx) error {
+	return s.db.Update(func(tx *bbolt.Tx) error {
 		if sessions := tx.Bucket(bucketSessions); sessions != nil {
 			ses := sessions.Bucket(id)
 			if ses == nil {
@@ -292,7 +292,7 @@ func (s *sessions) PacketsDelete(id []byte) error {
 }
 
 func (s *sessions) LoadForEach(loader persistence.SessionLoader, context interface{}) error {
-	return s.db.Update(func(tx *bolt.Tx) error {
+	return s.db.Update(func(tx *bbolt.Tx) error {
 		sessions := tx.Bucket(bucketSessions)
 		if sessions == nil {
 			return nil
@@ -332,7 +332,7 @@ func (s *sessions) LoadForEach(loader persistence.SessionLoader, context interfa
 }
 
 func (s *sessions) Create(id []byte, state *persistence.SessionBase) error {
-	return s.db.Update(func(tx *bolt.Tx) error {
+	return s.db.Update(func(tx *bbolt.Tx) error {
 		sessions := tx.Bucket(bucketSessions)
 		if sessions == nil {
 			return persistence.ErrNotInitialized
@@ -343,7 +343,7 @@ func (s *sessions) Create(id []byte, state *persistence.SessionBase) error {
 			return err
 		}
 
-		var st *bolt.Bucket
+		var st *bbolt.Bucket
 		st, err = session.CreateBucketIfNotExists(bucketState)
 		if err != nil {
 			return err
@@ -362,7 +362,7 @@ func (s *sessions) Create(id []byte, state *persistence.SessionBase) error {
 }
 
 func (s *sessions) StateStore(id []byte, state *persistence.SessionState) error {
-	return s.db.Update(func(tx *bolt.Tx) error {
+	return s.db.Update(func(tx *bbolt.Tx) error {
 		sessions := tx.Bucket(bucketSessions)
 		if sessions == nil {
 			return persistence.ErrNotInitialized
@@ -373,7 +373,7 @@ func (s *sessions) StateStore(id []byte, state *persistence.SessionState) error 
 			return err
 		}
 
-		var st *bolt.Bucket
+		var st *bbolt.Bucket
 		st, err = session.CreateBucketIfNotExists(bucketState)
 		if err != nil {
 			return err
@@ -417,7 +417,7 @@ func (s *sessions) StateStore(id []byte, state *persistence.SessionState) error 
 }
 
 func (s *sessions) ExpiryStore(id []byte, exp *persistence.SessionDelays) error {
-	return s.db.Update(func(tx *bolt.Tx) error {
+	return s.db.Update(func(tx *bbolt.Tx) error {
 		sessions := tx.Bucket(bucketSessions)
 		if sessions == nil {
 			return persistence.ErrNotInitialized
@@ -428,7 +428,7 @@ func (s *sessions) ExpiryStore(id []byte, exp *persistence.SessionDelays) error 
 			return err
 		}
 
-		var st *bolt.Bucket
+		var st *bbolt.Bucket
 		st, err = session.CreateBucketIfNotExists(bucketState)
 		if err != nil {
 			return err
@@ -460,7 +460,7 @@ func (s *sessions) ExpiryStore(id []byte, exp *persistence.SessionDelays) error 
 }
 
 func (s *sessions) ExpiryDelete(id []byte) error {
-	return s.db.Update(func(tx *bolt.Tx) error {
+	return s.db.Update(func(tx *bbolt.Tx) error {
 		sessions := tx.Bucket(bucketSessions)
 		if sessions == nil {
 			return nil
@@ -482,7 +482,7 @@ func (s *sessions) ExpiryDelete(id []byte) error {
 }
 
 func (s *sessions) StateDelete(id []byte) error {
-	return s.db.Update(func(tx *bolt.Tx) error {
+	return s.db.Update(func(tx *bbolt.Tx) error {
 		sessions := tx.Bucket(bucketSessions)
 		if sessions == nil {
 			return persistence.ErrNotInitialized
@@ -500,7 +500,7 @@ func (s *sessions) StateDelete(id []byte) error {
 }
 
 func (s *sessions) Delete(id []byte) error {
-	return s.db.Update(func(tx *bolt.Tx) error {
+	return s.db.Update(func(tx *bbolt.Tx) error {
 		sessions := tx.Bucket(bucketSessions)
 		if sessions == nil {
 			return persistence.ErrNotInitialized
@@ -533,7 +533,7 @@ func (s *sessions) Delete(id []byte) error {
 	})
 }
 
-func getSession(id []byte, sessions *bolt.Bucket) (*bolt.Bucket, error) {
+func getSession(id []byte, sessions *bbolt.Bucket) (*bbolt.Bucket, error) {
 	session := sessions.Bucket(id)
 	if session == nil {
 		var err error
@@ -557,18 +557,18 @@ func getSession(id []byte, sessions *bolt.Bucket) (*bolt.Bucket, error) {
 	return session, nil
 }
 
-func createPacketsBucket(tx *bolt.Tx, id []byte, bucket []byte) (*bolt.Bucket, error) {
+func createPacketsBucket(tx *bbolt.Tx, id []byte, bucket []byte) (*bbolt.Bucket, error) {
 	sessions, err := tx.CreateBucketIfNotExists(bucketSessions)
 	if err != nil {
 		return nil, err
 	}
 
-	var session *bolt.Bucket
+	var session *bbolt.Bucket
 	if session, err = getSession(id, sessions); err != nil {
 		return nil, err
 	}
 
-	var packetsRoot *bolt.Bucket
+	var packetsRoot *bbolt.Bucket
 	if packetsRoot, err = session.CreateBucketIfNotExists(bucketPackets); err != nil {
 		return nil, err
 	}
@@ -576,7 +576,7 @@ func createPacketsBucket(tx *bolt.Tx, id []byte, bucket []byte) (*bolt.Bucket, e
 	return packetsRoot.CreateBucketIfNotExists(bucket)
 }
 
-func storePacket(buck *bolt.Bucket, packet *persistence.PersistedPacket) error {
+func storePacket(buck *bbolt.Bucket, packet *persistence.PersistedPacket) error {
 	id, _ := buck.NextSequence() // nolint: gas
 	pBuck, err := buck.CreateBucketIfNotExists(itob64(id))
 	if err != nil {
