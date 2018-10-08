@@ -107,6 +107,8 @@ func NewSubscribeTopic(topic []byte, ops SubscriptionOptions) (*Topic, error) {
 		return nil, err
 	}
 
+	t.ops = ops
+
 	return t, nil
 }
 
