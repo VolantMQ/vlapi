@@ -296,6 +296,10 @@ func (s *sessions) ExpiryStore(id []byte, exp *SessionDelays) error {
 	ses.lock.Lock()
 	defer ses.lock.Unlock()
 
+	if ses.state == nil {
+		ses.state = &SessionState{}
+	}
+
 	ses.state.Expire = exp
 	return nil
 }

@@ -23,7 +23,7 @@ type Subscriptions map[string]*SubscriptionParams
 // IFace passed to present network connection
 type IFace interface {
 	Subscriptions() Subscriptions
-	Subscribe(string, *SubscriptionParams) (mqttp.QosType, []*mqttp.Publish, error)
+	Subscribe(string, *SubscriptionParams) ([]*mqttp.Publish, error)
 	UnSubscribe(string) error
 	HasSubscriptions() bool
 	Online(c Publisher)
