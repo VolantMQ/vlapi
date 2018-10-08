@@ -18,7 +18,7 @@ type system struct {
 func (s *system) GetInfo() (*persistence.SystemState, error) {
 	state := &persistence.SystemState{}
 
-	err := s.db.View(func(tx *bolt.Tx) error {
+	err := s.db.View(func(tx *bbolt.Tx) error {
 		sys := tx.Bucket(bucketSystem)
 		if sys == nil {
 			return persistence.ErrNotInitialized
@@ -38,7 +38,7 @@ func (s *system) GetInfo() (*persistence.SystemState, error) {
 }
 
 func (s *system) SetInfo(state *persistence.SystemState) error {
-	err := s.db.Update(func(tx *bolt.Tx) error {
+	err := s.db.Update(func(tx *bbolt.Tx) error {
 		sys := tx.Bucket(bucketSystem)
 		if sys == nil {
 			return persistence.ErrNotInitialized

@@ -8,7 +8,7 @@ import (
 // PropertyID id as per [MQTT-2.2.2]
 type PropertyID uint32
 
-// PropertyType value type used be property ID
+// PropertyType value type used by property ID
 type PropertyType byte
 
 // PropertyError encodes property error
