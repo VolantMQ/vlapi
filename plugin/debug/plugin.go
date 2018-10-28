@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"net/http/pprof"
+	"runtime"
 
 	"strings"
 
@@ -38,6 +39,8 @@ type config struct {
 	Trace   bool   `mapstructure:"trace,omitempty" yaml:"trace,omitempty" json:"trace,omitempty" default:"false"`
 	Symbol  bool   `mapstructure:"symbol,omitempty" yaml:"symbol,omitempty" json:"symbol,omitempty" default:"false"`
 	CmdLine bool   `mapstructure:"cmdline,omitempty" yaml:"cmdline,omitempty" json:"cmdline,omitempty" default:"false"`
+	Block   int    `mapstructure:"block,omitempty" yaml:"block,omitempty" json:"block,omitempty" default:"0"`
+	Mutex   int    `mapstructure:"mutex,omitempty" yaml:"mutex,omitempty" json:"mutex,omitempty" default:"0"`
 }
 
 type impl struct {
@@ -84,7 +87,7 @@ func (pl *pl) Load(c interface{}, params *vlplugin.SysParams) (pla interface{}, 
 	}
 
 	if p.cfg.CPU {
-		params.GetHTTPServer(p.cfg.Port).Mux().HandleFunc(p.cfg.Path+"profile", pprof.Profile)
+		params.GetHTTPServer(p.cfg.Port).Mux().HandleFunc(p.cfg.Path+"/profile", pprof.Profile)
 	}
 
 	if p.cfg.Symbol {
@@ -93,6 +96,14 @@ func (pl *pl) Load(c interface{}, params *vlplugin.SysParams) (pla interface{}, 
 
 	if p.cfg.Trace {
 		params.GetHTTPServer(p.cfg.Port).Mux().HandleFunc(p.cfg.Path+"/trace", pprof.Trace)
+	}
+
+	if p.cfg.Block > 0 {
+		runtime.SetBlockProfileRate(p.cfg.Block)
+	}
+
+	if p.cfg.Mutex > 0 {
+		runtime.SetBlockProfileRate(p.cfg.Mutex)
 	}
 
 	pla = p
