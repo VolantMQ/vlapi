@@ -1,4 +1,9 @@
-package persistence
+package persistenceMem
+
+import (
+	"github.com/VolantMQ/vlapi/plugin"
+	"github.com/VolantMQ/vlapi/plugin/persistence"
+)
 
 type dbStatus struct {
 	done chan struct{}
@@ -8,12 +13,10 @@ type impl struct {
 	status dbStatus
 	r      retained
 	s      sessions
-	subs   subscriptions
 	sys    system
 }
 
-// Default allocate new persistence provider of in memory type
-func Default() IFace {
+func Load(c interface{}, params *vlplugin.SysParams) (persistence.IFace, error) {
 	pl := &impl{}
 
 	pl.status.done = make(chan struct{})
@@ -23,58 +26,51 @@ func Default() IFace {
 	}
 
 	pl.s = sessions{
-		status: &pl.status,
-	}
-
-	pl.subs = subscriptions{
-		status: &pl.status,
-		subs:   make(map[string][]byte),
+		status:  &pl.status,
+		entries: make(map[string]*session),
 	}
 
 	pl.sys = system{
 		status: &pl.status,
 	}
 
-	return pl
+	return pl, nil
 }
 
-func (p *impl) System() (System, error) {
+func (p *impl) System() (persistence.System, error) {
 	select {
 	case <-p.status.done:
-		return nil, ErrNotOpen
+		return nil, persistence.ErrNotOpen
 	default:
 	}
 
 	return &p.sys, nil
 }
 
-// Sessions
-func (p *impl) Sessions() (Sessions, error) {
+func (p *impl) Sessions() (persistence.Sessions, error) {
 	select {
 	case <-p.status.done:
-		return nil, ErrNotOpen
+		return nil, persistence.ErrNotOpen
 	default:
 	}
 
 	return &p.s, nil
 }
 
-// Retained
-func (p *impl) Retained() (Retained, error) {
+func (p *impl) Retained() (persistence.Retained, error) {
 	select {
 	case <-p.status.done:
-		return nil, ErrNotOpen
+		return nil, persistence.ErrNotOpen
 	default:
 	}
 
 	return &p.r, nil
 }
 
-// Shutdown provider
 func (p *impl) Shutdown() error {
 	select {
 	case <-p.status.done:
-		return ErrNotOpen
+		return persistence.ErrNotOpen
 	default:
 		close(p.status.done)
 	}

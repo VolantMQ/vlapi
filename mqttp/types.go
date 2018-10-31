@@ -26,7 +26,7 @@ var (
 	TopicPublishRegexp = regexp.MustCompile(`^[^#+]*$`)
 
 	// SharedTopicRegexp regular expression that all share subscription must be validated
-	SharedTopicRegexp = regexp.MustCompile(`^\$share\/([^#,+,/]+)(\/)(.+)$`)
+	SharedTopicRegexp = regexp.MustCompile(`^\$share/([^#+/]+)(/)(.+)$`)
 )
 
 var dollarPrefix = []byte("$")
@@ -76,7 +76,7 @@ func NewTopic(topic []byte) (*Topic, error) {
 			t.dollarPrefix = topic[:idx]
 
 			if bytes.Compare(t.dollarPrefix, sharePrefix) == 0 {
-				if !SharedTopicRegexp.Match(topic) {
+				if !SharedTopicRegexp.Copy().Match(topic) {
 					return nil, CodeProtocolError
 				}
 
@@ -89,7 +89,7 @@ func NewTopic(topic []byte) (*Topic, error) {
 		}
 	}
 
-	if !TopicFilterRegexp.Match(t.filter) {
+	if !TopicFilterRegexp.Copy().Match(t.filter) {
 		return nil, CodeProtocolError
 	}
 

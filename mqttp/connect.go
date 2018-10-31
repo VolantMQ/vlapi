@@ -53,12 +53,6 @@ type Connect struct {
 	username     []byte
 	password     []byte
 	will         *Publish
-	// struct {
-	//	properties property
-	//	topic      string
-	//	message    []byte
-	//	msg        *Publish
-	//}
 }
 
 var _ IFace = (*Connect)(nil)
@@ -581,5 +575,5 @@ func (msg *Connect) validClientID(cid []byte) bool {
 
 	// V3.1.1  [MQTT-3.1.3-4]      [MQTT-3.1.3-5]
 	// V5.0    [MQTT-3.1.3-4]      [MQTT-3.1.3-5]
-	return utf8.Valid(cid) && clientIDRegexp.Match(cid)
+	return utf8.Valid(cid) && clientIDRegexp.Copy().Match(cid)
 }

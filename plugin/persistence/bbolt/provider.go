@@ -1,11 +1,12 @@
-package main
+package persistenceBbolt
 
 import (
 	"encoding/binary"
 	"errors"
 	"os"
 	"path/filepath"
-	"sync"
+
+	"github.com/blang/semver"
 
 	"github.com/VolantMQ/vlapi/plugin"
 	"github.com/VolantMQ/vlapi/plugin/persistence"
@@ -26,6 +27,8 @@ var (
 	sessionsCount       = []byte("count")
 )
 
+const currentVersion = "0.1.0"
+
 // Config configuration of the BoltDB backend
 type Config struct {
 	File string `json:"file"`
@@ -40,10 +43,6 @@ type impl struct {
 	*vlplugin.SysParams
 	dbStatus
 
-	// transactions that are in progress right now
-	wgTx sync.WaitGroup
-	lock sync.Mutex
-
 	r   *retained
 	s   *sessions
 	sys *system
@@ -56,7 +55,7 @@ var initialBuckets = [][]byte{
 }
 
 // nolint: golint
-func Load(c interface{}, params *vlplugin.SysParams) (interface{}, error) {
+func Load(c interface{}, params *vlplugin.SysParams) (persistence.IFace, error) {
 	config, ok := c.(*Config)
 	if !ok {
 		cfg, kk := c.(map[interface{}]interface{})
@@ -80,11 +79,12 @@ func Load(c interface{}, params *vlplugin.SysParams) (interface{}, error) {
 
 	if dir := filepath.Dir(config.File); dir != "." {
 		if stat, err := os.Stat(dir); os.IsNotExist(err) {
+			params.Log.Infof("creating dir %s", dir)
 			if err = os.MkdirAll(dir, os.ModePerm); err != nil {
 				return nil, err
 			}
 		} else if !stat.IsDir() {
-			return nil, errors.New("persistence.boltdb: path [" + dir + "] is not directory")
+			return nil, errors.New("persistence.bbolt: path [" + dir + "] is not directory")
 		}
 	}
 
@@ -102,12 +102,50 @@ func Load(c interface{}, params *vlplugin.SysParams) (interface{}, error) {
 	}
 
 	err = persist.db.Update(func(tx *bbolt.Tx) error {
-		for _, b := range initialBuckets {
-			if _, e := tx.CreateBucketIfNotExists(b); e != nil {
+		var e error
+		if sys := tx.Bucket(bucketSystem); sys == nil {
+			if sys, e = tx.CreateBucketIfNotExists(bucketSystem); e != nil {
 				return e
 			}
+
+			if e := sys.Put([]byte("version"), []byte(currentVersion)); e != nil {
+				return e
+			}
+
+			if _, e = tx.CreateBucketIfNotExists(bucketSessions); e != nil {
+				return e
+			}
+
+			if _, e = tx.CreateBucketIfNotExists(bucketRetained); e != nil {
+				return e
+			}
+
+			params.Log.Info("initializing storage version: ", currentVersion)
+		} else {
+			data := sys.Get([]byte("version"))
+
+			var ver semver.Version
+
+			if ver, e = semver.Make(string(data)); e != nil {
+				e = errors.New("storage is broken. no version field")
+				params.Log.Error(e.Error())
+				return e
+			}
+
+			if sys = tx.Bucket(bucketSessions); sys == nil {
+				e = errors.New("storage is broken. no bucket sessions")
+				return e
+			}
+
+			if sys = tx.Bucket(bucketRetained); sys == nil {
+				e = errors.New("storage is broken. no bucket retained")
+				return e
+			}
+
+			params.Log.Info("using initialized storage: version ", ver.String())
 		}
-		return nil
+
+		return e
 	})
 
 	if err != nil {
@@ -116,20 +154,14 @@ func Load(c interface{}, params *vlplugin.SysParams) (interface{}, error) {
 
 	persist.r = &retained{
 		dbStatus: &persist.dbStatus,
-		wgTx:     &persist.wgTx,
-		lock:     &persist.lock,
 	}
 
 	persist.s = &sessions{
 		dbStatus: &persist.dbStatus,
-		wgTx:     &persist.wgTx,
-		lock:     &persist.lock,
 	}
 
 	persist.sys = &system{
 		dbStatus: &persist.dbStatus,
-		wgTx:     &persist.wgTx,
-		lock:     &persist.lock,
 	}
 
 	if err = persist.s.init(); err != nil {
@@ -173,18 +205,12 @@ func (p *impl) Retained() (persistence.Retained, error) {
 
 // Shutdown provider
 func (p *impl) Shutdown() error {
-	p.lock.Lock()
-	defer p.lock.Unlock()
-
 	select {
 	case <-p.done:
 		return persistence.ErrNotOpen
 	default:
+		close(p.done)
 	}
-
-	close(p.done)
-
-	p.wgTx.Wait()
 
 	err := p.db.Close()
 	p.db = nil
@@ -192,7 +218,7 @@ func (p *impl) Shutdown() error {
 	return err
 }
 
-// itob64 returns an 8-byte big endian representation of v.
+// itob64 returns an 8-byte big endian representation of v
 func itob64(v uint64) []byte {
 	b := make([]byte, 8)
 	binary.BigEndian.PutUint64(b, v)

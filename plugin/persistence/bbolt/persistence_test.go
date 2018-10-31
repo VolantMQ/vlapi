@@ -1,0 +1,5 @@
+package persistenceBbolt
+
+func init() {
+
+}

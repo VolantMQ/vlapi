@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/VolantMQ/vlapi/plugin"
+	"github.com/VolantMQ/vlapi/plugin/persistence/mem"
 )
 
 type persistencePlugin struct {
@@ -15,14 +16,14 @@ var _ vlplugin.Info = (*persistencePlugin)(nil)
 var Plugin persistencePlugin
 
 func init() {
-	Plugin.V = "0.0.1"
-	Plugin.N = "bbolt"
+	Plugin.V = "0.1.0"
+	Plugin.N = "mem"
 	Plugin.T = "persistence"
 }
 
 // Load plugin
 func (pl *persistencePlugin) Load(c interface{}, params *vlplugin.SysParams) (interface{}, error) {
-	return Load(c, params)
+	return persistenceMem.Load(c, params)
 }
 
 // Info plugin info

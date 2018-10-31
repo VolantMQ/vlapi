@@ -61,8 +61,7 @@ type PersistedPackets struct {
 type SessionDelays struct {
 	Since    string
 	ExpireIn string
-	// Will encoded packet
-	Will []byte
+	Will     []byte
 }
 
 // SessionBase ...
@@ -81,8 +80,8 @@ type SessionState struct {
 
 // SystemState system configuration
 type SystemState struct {
-	Version  string
-	NodeName string
+	Version   string
+	CreatedAt string
 }
 
 // PacketLoader application callback doing packed decode
@@ -92,22 +91,21 @@ type PacketLoader func(interface{}, *PersistedPacket) (bool, error)
 
 // SessionLoader implemented by session manager to load persisted sessions when server starts
 type SessionLoader interface {
-	LoadSession(interface{}, []byte, *SessionState) error
+	LoadSession(ctx interface{}, id []byte, state *SessionState) error
 }
 
 // Packets interface for connection to handle packets
 type Packets interface {
-	PacketCountQoS0([]byte) (int, error)
-	PacketCountQoS12([]byte) (int, error)
-	PacketCountUnAck([]byte) (int, error)
-	PacketStoreQoS0([]byte, *PersistedPacket) error
-	PacketStoreQoS12([]byte, *PersistedPacket) error
-	PacketsForEachQoS0([]byte, interface{}, PacketLoader) error
-	PacketsForEachQoS12([]byte, interface{}, PacketLoader) error
-	PacketsForEachUnAck([]byte, interface{}, PacketLoader) error
-	PacketsStore([]byte, PersistedPackets) error
-	//PacketsStoreUnAck([]byte, PersistedPackets) error
-	PacketsDelete([]byte) error
+	PacketCountQoS0(id []byte) (uint64, error)
+	PacketCountQoS12(id []byte) (uint64, error)
+	PacketCountUnAck(id []byte) (uint64, error)
+	PacketStoreQoS0(id []byte, packets *PersistedPacket) error
+	PacketStoreQoS12(id []byte, packets *PersistedPacket) error
+	PacketsForEachQoS0(id []byte, ctx interface{}, loader PacketLoader) error
+	PacketsForEachQoS12(id []byte, ctx interface{}, loader PacketLoader) error
+	PacketsForEachUnAck(id []byte, ctx interface{}, loader PacketLoader) error
+	PacketsStore(id []byte, packets PersistedPackets) error
+	PacketsDelete(id []byte) error
 }
 
 // Subscriptions session subscriptions interface
@@ -118,19 +116,20 @@ type Subscriptions interface {
 
 // Expiry session expiration interface
 type Expiry interface {
-	ExpiryStore([]byte, *SessionDelays) error
-	ExpiryDelete([]byte) error
+	ExpiryStore(id []byte, delays *SessionDelays) error
+	ExpiryDelete(id []byte) error
 }
 
 // State session state interface
 type State interface {
-	StateStore([]byte, *SessionState) error
-	StateDelete([]byte) error
+	StateStore(id []byte, state *SessionState) error
+	StateDelete(id []byte) error
 }
 
 // Retained provider for load/store retained messages
 type Retained interface {
 	// Store persist retained message
+	// it wipes previously set values
 	Store([]*PersistedPacket) error
 	// Load load retained messages
 	Load() ([]*PersistedPacket, error)
@@ -144,17 +143,18 @@ type Sessions interface {
 	Subscriptions
 	State
 	Expiry
-	Create([]byte, *SessionBase) error
+	Create(id []byte, state *SessionBase) error
 	Count() uint64
-	LoadForEach(SessionLoader, interface{}) error
-	Exists([]byte) bool
-	Delete([]byte) error
+	LoadForEach(loader SessionLoader, ctx interface{}) error
+	// Exists check session if presented in storage
+	Exists(id []byte) bool
+	Delete(id []byte) error
 }
 
 // System persistence state of the system configuration
 type System interface {
 	GetInfo() (*SystemState, error)
-	SetInfo(*SystemState) error
+	// SetInfo(*SystemState) error
 }
 
 // IFace interface implemented by different backends

@@ -1,18 +1,12 @@
-package main
+package persistenceBbolt
 
 import (
-	"sync"
-
 	"github.com/VolantMQ/vlapi/plugin/persistence"
 	"github.com/coreos/bbolt"
 )
 
 type retained struct {
 	*dbStatus
-
-	// transactions that are in progress right now
-	wgTx *sync.WaitGroup
-	lock *sync.Mutex
 }
 
 func (r *retained) Load() ([]*persistence.PersistedPacket, error) {
@@ -38,29 +32,33 @@ func (r *retained) Load() ([]*persistence.PersistedPacket, error) {
 	return res, err
 }
 
-// Store
+// Store retained packets
 func (r *retained) Store(packets []*persistence.PersistedPacket) error {
 	return r.db.Update(func(tx *bbolt.Tx) error {
-		tx.DeleteBucket(bucketRetained) // nolint: errcheck
+		if err := tx.DeleteBucket(bucketRetained); err != nil && err != bbolt.ErrBucketNotFound {
+			return err
+		}
+
 		bucket, err := tx.CreateBucket(bucketRetained)
 		if err != nil {
 			return err
 		}
 
 		for _, p := range packets {
-			id, _ := bucket.NextSequence() // nolint: gas
-			pack, err := bucket.CreateBucketIfNotExists(itob64(id))
-			if err != nil {
+			var id uint64
+			if id, err = bucket.NextSequence(); err != nil {
+				return err
+			}
+			var pack *bbolt.Bucket
+			if pack, err = bucket.CreateBucketIfNotExists(itob64(id)); err != nil {
 				return err
 			}
 
-			err = pack.Put([]byte("data"), p.Data)
-			if err != nil {
+			if err = pack.Put([]byte("data"), p.Data); err != nil {
 				return err
 			}
 
-			err = pack.Put([]byte("expireAt"), []byte(p.ExpireAt))
-			if err != nil {
+			if err = pack.Put([]byte("expireAt"), []byte(p.ExpireAt)); err != nil {
 				return err
 			}
 		}
@@ -69,7 +67,7 @@ func (r *retained) Store(packets []*persistence.PersistedPacket) error {
 	})
 }
 
-// Wipe
+// Wipe all retained packets
 func (r *retained) Wipe() error {
 	return r.db.Update(func(tx *bbolt.Tx) error {
 		if err := tx.DeleteBucket(bucketRetained); err != nil {
