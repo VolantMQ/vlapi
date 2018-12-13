@@ -56,7 +56,8 @@ const (
 )
 
 func (h *header) init(t Type, v ProtocolVersion, sz func() int, enc, dec func([]byte) (int, error)) {
-	h.mType = t
+	h.setType(t)
+
 	h.version = v
 	h.cb.encode = enc
 	h.cb.decode = dec
