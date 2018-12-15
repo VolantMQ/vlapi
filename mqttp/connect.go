@@ -440,7 +440,10 @@ func (msg *Connect) decodeMessage(from []byte) (int, error) {
 		msg.will = NewPublish(msg.version)
 
 		msg.will.SetDup(false)
-		msg.will.SetQoS(msg.willQos())
+		if err = msg.will.SetQoS(msg.willQos()); err != nil {
+			return offset, err
+		}
+
 		msg.will.SetRetain(msg.willRetain())
 
 		// V3.1.1 [MQTT-3.1.3.2]
@@ -464,7 +467,9 @@ func (msg *Connect) decodeMessage(from []byte) (int, error) {
 		}
 		offset += n
 
-		msg.will.SetTopic(string(buf))
+		if err = msg.will.SetTopic(string(buf)); err != nil {
+			return offset, err
+		}
 
 		// Will payload
 		// V3.1.1 [3.1.3.3]

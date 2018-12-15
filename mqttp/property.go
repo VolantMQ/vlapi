@@ -347,11 +347,11 @@ func (p *property) Set(t Type, id PropertyID, val interface{}) error {
 	}
 
 	fn := propertyCalcLen[propertyTypeMap[id]]
-	l, _ := fn(id, val)
+	l, err := fn(id, val)
 	p.len += l
 	p.properties[id] = val
 
-	return nil
+	return err
 }
 
 // Get property value
@@ -844,20 +844,28 @@ func encodeVarInt(id PropertyID, val interface{}, to []byte) (int, error) {
 func encodeString(id PropertyID, val interface{}, to []byte) (int, error) {
 	offset := 0
 
-	encode := func(v string, to []byte) int {
+	encode := func(v string, to []byte) (int, error) {
 		off := writePrefixID(id, to)
-		count, _ := WriteLPBytes(to[off:], []byte(v))
+		count, err := WriteLPBytes(to[off:], []byte(v))
 		off += count
 
-		return off
+		return off, err
 	}
 
 	switch valueType := val.(type) {
 	case string:
-		offset += encode(valueType, to[offset:])
+		n, err := encode(valueType, to[offset:])
+		offset += n
+		if err != nil {
+			return offset, err
+		}
 	case []string:
 		for _, v := range valueType {
-			offset += encode(v, to[offset:])
+			n, err := encode(v, to[offset:])
+			offset += n
+			if err != nil {
+				return offset, err
+			}
 		}
 	default:
 		panic("unexpected property type")
@@ -869,24 +877,38 @@ func encodeString(id PropertyID, val interface{}, to []byte) (int, error) {
 func encodeStringPair(id PropertyID, val interface{}, to []byte) (int, error) {
 	offset := 0
 
-	encode := func(v StringPair, to []byte) int {
+	encode := func(v StringPair, to []byte) (int, error) {
 		off := writePrefixID(id, to)
 
-		n, _ := WriteLPBytes(to[off:], []byte(v.K))
+		n, err := WriteLPBytes(to[off:], []byte(v.K))
 		off += n
+		if err != nil {
+			return off, err
+		}
 
-		n, _ = WriteLPBytes(to[off:], []byte(v.V))
+		n, err = WriteLPBytes(to[off:], []byte(v.V))
 		off += n
+		if err != nil {
+			return off, err
+		}
 
-		return off
+		return off, nil
 	}
 
 	switch valueType := val.(type) {
 	case StringPair:
-		offset += encode(valueType, to[offset:])
+		n, err := encode(valueType, to[offset:])
+		offset += n
+		if err != nil {
+			return offset, err
+		}
 	case []StringPair:
 		for _, v := range valueType {
-			offset += encode(v, to[offset:])
+			n, err := encode(v, to[offset:])
+			offset += n
+			if err != nil {
+				return offset, err
+			}
 		}
 	default:
 		panic("unexpected property type")
@@ -898,20 +920,28 @@ func encodeStringPair(id PropertyID, val interface{}, to []byte) (int, error) {
 func encodeBinary(id PropertyID, val interface{}, to []byte) (int, error) {
 	offset := 0
 
-	encode := func(v []byte, to []byte) int {
+	encode := func(v []byte, to []byte) (int, error) {
 		off := writePrefixID(id, to)
-		count, _ := WriteLPBytes(to[off:], v)
+		count, err := WriteLPBytes(to[off:], v)
 		off += count
 
-		return off
+		return off, err
 	}
 
 	switch valueType := val.(type) {
 	case []byte:
-		offset += encode(valueType, to[offset:])
+		n, err := encode(valueType, to[offset:])
+		offset += n
+		if err != nil {
+			return offset, err
+		}
 	case [][]byte:
 		for _, v := range valueType {
-			offset += encode(v, to[offset:])
+			n, err := encode(v, to[offset:])
+			offset += n
+			if err != nil {
+				return offset, err
+			}
 		}
 	default:
 		panic("unexpected property type")

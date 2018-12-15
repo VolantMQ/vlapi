@@ -75,7 +75,9 @@ func (msg *Publish) Clone(v ProtocolVersion) (*Publish, error) {
 
 	// [MQTT-3.3.1-9]
 	// [MQTT-3.3.1-3]
-	pkt.Set(msg.topic, msg.Payload(), msg.QoS(), msg.Retain(), false) // nolint: errcheck
+	if err := pkt.Set(msg.topic, msg.Payload(), msg.QoS(), msg.Retain(), false); err != nil {
+		return nil, err
+	}
 
 	// clone expiration setting with no matter of version as expired publish packet
 	// should not be delivered to V3 brokers when it expired
