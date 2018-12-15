@@ -20,7 +20,7 @@ script:
   - go build -race -gcflags "-N -l" ./mqttp
   - go build -race -gcflags "-N -l" -buildmode=plugin ./plugin/debug
   - go build -race -gcflags "-N -l" -buildmode=plugin ./plugin/health
-  - go build -race -gcflags "-N -l" -buildmode=plugin ./plugin/persistence/bbolt
+  - go build -race -gcflags "-N -l" -buildmode=plugin ./plugin/persistence/bbolt/plugin
   - gometalinter --fast --exclude=corefoundation.go --deadline=360s --enable-gc --sort=path --cyclo-over=40 --dupl-threshold=100 --disable=gotype --vendor --enable=goimports ./...
   - go test -race -coverprofile=coverage.txt -covermode=atomic -v $(go list ./... | grep -v /vendor/)
 after_success:
