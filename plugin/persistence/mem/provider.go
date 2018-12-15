@@ -16,6 +16,7 @@ type impl struct {
 	sys    system
 }
 
+// nolint: golint
 func Load(c interface{}, params *vlplugin.SysParams) (persistence.IFace, error) {
 	pl := &impl{}
 

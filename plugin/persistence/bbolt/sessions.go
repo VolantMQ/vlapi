@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/VolantMQ/vlapi/plugin/persistence"
-	"github.com/coreos/bbolt"
+	"github.com/etcd-io/bbolt"
 )
 
 type sessions struct {
@@ -54,7 +54,7 @@ func (s *sessions) Exists(id []byte) bool {
 func (s *sessions) Count() uint64 {
 	var count uint64
 
-	s.db.View(func(tx *bbolt.Tx) error { // nolint: errcheck
+	s.db.View(func(tx *bbolt.Tx) error { // nolint: errcheck, gosec
 		sessions := tx.Bucket(bucketSessions)
 
 		val := sessions.Get(sessionsCount)
@@ -96,7 +96,9 @@ func (s *sessions) SubscriptionsDelete(id []byte) error {
 			return persistence.ErrNotFound
 		}
 
-		session.Delete(bucketSubscriptions) // nolint: errcheck
+		if err := session.Delete(bucketSubscriptions); err != nil && err != bbolt.ErrBucketNotFound {
+			return err
+		}
 		return nil
 	})
 }
@@ -174,7 +176,9 @@ func (s *sessions) PacketsDelete(id []byte) error {
 			if ses == nil {
 				return persistence.ErrNotFound
 			}
-			ses.DeleteBucket(bucketPackets) // nolint: errcheck
+			if err := ses.DeleteBucket(bucketPackets); err != nil && err != bbolt.ErrBucketNotFound {
+				return err
+			}
 		}
 		return nil
 	})
@@ -432,7 +436,7 @@ func (s *sessions) packetsForEach(id []byte, ctx interface{}, load persistence.P
 			return nil
 		}
 
-		packets.ForEach(func(k, v []byte) error { // nolint: errcheck
+		return packets.ForEach(func(k, v []byte) error {
 			if packet := packets.Bucket(k); packet != nil {
 				pPkt := &persistence.PersistedPacket{}
 
@@ -447,16 +451,18 @@ func (s *sessions) packetsForEach(id []byte, ctx interface{}, load persistence.P
 				}
 
 				rm, err := load(ctx, pPkt)
-				if rm {
-					packets.DeleteBucket(k) // nolint: errcheck
+				if err != nil {
+					return err
 				}
 
-				return err
+				if rm {
+					if err = packets.DeleteBucket(k); err != nil && err != bbolt.ErrBucketNotFound {
+						return err
+					}
+				}
 			}
 			return nil
 		})
-
-		return nil
 	})
 }
 
@@ -555,9 +561,13 @@ func createPacketsBucket(tx *bbolt.Tx, id []byte, bucket []byte) (*bbolt.Bucket,
 }
 
 func storePacket(buck *bbolt.Bucket, packet *persistence.PersistedPacket) error {
-	id, _ := buck.NextSequence() // nolint: gas
-	pBuck, err := buck.CreateBucketIfNotExists(itob64(id))
+	id, err := buck.NextSequence()
 	if err != nil {
+		return nil
+	}
+
+	pBuck, e := buck.CreateBucketIfNotExists(itob64(id))
+	if e != nil {
 		return err
 	}
 

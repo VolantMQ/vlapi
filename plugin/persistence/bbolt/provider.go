@@ -10,7 +10,7 @@ import (
 
 	"github.com/VolantMQ/vlapi/plugin"
 	"github.com/VolantMQ/vlapi/plugin/persistence"
-	"github.com/coreos/bbolt"
+	"github.com/etcd-io/bbolt"
 )
 
 var (
@@ -108,7 +108,7 @@ func Load(c interface{}, params *vlplugin.SysParams) (persistence.IFace, error) 
 				return e
 			}
 
-			if e := sys.Put([]byte("version"), []byte(currentVersion)); e != nil {
+			if e = sys.Put([]byte("version"), []byte(currentVersion)); e != nil {
 				return e
 			}
 

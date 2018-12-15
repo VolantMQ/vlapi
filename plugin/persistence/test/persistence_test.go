@@ -155,7 +155,7 @@ func TestRetained(t *testing.T) {
 	require.Equal(t, packets, storedPackets)
 
 	err = retained.Wipe()
-	require.NoError(t, e)
+	require.NoError(t, err)
 
 	packets, e = retained.Load()
 	require.NoError(t, e)
