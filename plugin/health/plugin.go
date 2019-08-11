@@ -4,9 +4,10 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/VolantMQ/vlapi/plugin"
 	"github.com/troian/healthcheck"
 	"gopkg.in/yaml.v2"
+
+	vlplugin "github.com/VolantMQ/vlapi/plugin"
 )
 
 type pl struct {

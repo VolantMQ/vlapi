@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 
 	"github.com/blang/semver"
+	"github.com/coreos/bbolt"
 
-	"github.com/VolantMQ/vlapi/plugin"
+	vlplugin "github.com/VolantMQ/vlapi/plugin"
 	"github.com/VolantMQ/vlapi/plugin/persistence"
-	"github.com/etcd-io/bbolt"
 )
 
 var (

@@ -1,8 +1,9 @@
 package persistenceBbolt
 
 import (
+	"github.com/coreos/bbolt"
+
 	"github.com/VolantMQ/vlapi/plugin/persistence"
-	"github.com/etcd-io/bbolt"
 )
 
 type system struct {

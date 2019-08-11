@@ -187,7 +187,7 @@ var propertyAllowedMessageTypes = map[PropertyID]map[Type]bool{
 	PropertyResponseTopic:                   {PUBLISH: false},
 	PropertyCorrelationData:                 {PUBLISH: false},
 	PropertySubscriptionIdentifier:          {PUBLISH: true, SUBSCRIBE: false},
-	PropertySessionExpiryInterval:           {CONNECT: false, DISCONNECT: false},
+	PropertySessionExpiryInterval:           {CONNECT: false, CONNACK: false, DISCONNECT: false},
 	PropertyAssignedClientIdentifier:        {CONNACK: false},
 	PropertyServerKeepAlive:                 {CONNACK: false},
 	PropertyAuthMethod:                      {CONNECT: false, CONNACK: false, AUTH: false},

@@ -4,11 +4,11 @@ import (
 	"errors"
 	"net/http/pprof"
 	"runtime"
-
 	"strings"
 
-	"github.com/VolantMQ/vlapi/plugin"
 	"gopkg.in/yaml.v2"
+
+	vlplugin "github.com/VolantMQ/vlapi/plugin"
 )
 
 type pl struct {

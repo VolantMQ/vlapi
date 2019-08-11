@@ -5,8 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/VolantMQ/vlapi/plugin/persistence/mem"
 	"github.com/stretchr/testify/require"
+
+	persistenceMem "github.com/VolantMQ/vlapi/plugin/persistence/mem"
 
 	"github.com/VolantMQ/vlapi/plugin/persistence"
 	_ "github.com/VolantMQ/vlapi/plugin/persistence/bbolt"

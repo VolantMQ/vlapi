@@ -2,12 +2,12 @@ package vlplugin
 
 import (
 	"errors"
-
 	"net/http"
 
-	"github.com/VolantMQ/vlapi/subscriber"
 	"github.com/troian/healthcheck"
 	"go.uber.org/zap"
+
+	vlsubscriber "github.com/VolantMQ/vlapi/subscriber"
 )
 
 // APIVersion version of current API

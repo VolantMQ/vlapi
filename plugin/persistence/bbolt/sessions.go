@@ -4,8 +4,9 @@ import (
 	"encoding/binary"
 	"errors"
 
+	"github.com/coreos/bbolt"
+
 	"github.com/VolantMQ/vlapi/plugin/persistence"
-	"github.com/etcd-io/bbolt"
 )
 
 type sessions struct {
