@@ -20,4 +20,9 @@
 - in-memory
 - bbolt
 
+### Local development and testing
+#### Instructions to pull go module 
+
+```go get github.com/VolantMQ/vlapi```
+
 ## TBD
