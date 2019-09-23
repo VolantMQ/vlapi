@@ -1,0 +1,84 @@
+project_name: vlapi
+env:
+  - GO111MODULE=on
+before:
+  hooks:
+    - go mod tidy
+
+#build_template:
+#  &build:
+#    goos:
+#      - darwin
+#    goarch:
+#      - amd64
+#    flags:
+#      - -buildmode=plugin
+#    gcflags:
+#      - -dynlink
+#    ldflags:
+#      - -X main.version={{.Version}}
+
+builds:
+- id: plugin_debug
+  main: ./plugin/debug/plugin.go
+  binary: debug.so
+  goos:
+    - darwin
+  goarch:
+    - amd64
+  flags:
+    - -buildmode=plugin
+  gcflags:
+    - -dynlink
+  ldflags:
+    - -X main.version={{.Version}}
+- id: plugin_health
+  main: ./plugin/health/plugin.go
+  binary: health.so
+  goos:
+    - darwin
+  goarch:
+    - amd64
+  flags:
+    - -buildmode=plugin
+  gcflags:
+    - -dynlink
+  ldflags:
+    - -X main.version={{.Version}}
+- id: plugin_persistence_mem
+  main: ./plugin/persistence/mem/plugin/plugin.go
+  binary: persistence_mem.so
+  goos:
+    - darwin
+  goarch:
+    - amd64
+  flags:
+    - -buildmode=plugin
+  gcflags:
+    - -dynlink
+  ldflags:
+    - -X main.version={{.Version}}
+- id: plugin_persistence_bbolt
+  main: ./plugin/persistence/bbolt/plugin/plugin.go
+  binary: persistence_bbolt.so
+  goos:
+    - darwin
+  goarch:
+    - amd64
+  flags:
+    - -buildmode=plugin
+  gcflags:
+    - -dynlink
+  ldflags:
+    - -X main.version={{.Version}}
+
+checksum:
+  name_template: '{{ .ProjectName }}_checksums.txt'
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - Merge pull request
+      - Merge branch
