@@ -580,5 +580,5 @@ func (msg *Connect) validClientID(cid []byte) bool {
 
 	// V3.1.1  [MQTT-3.1.3-4]      [MQTT-3.1.3-5]
 	// V5.0    [MQTT-3.1.3-4]      [MQTT-3.1.3-5]
-	return utf8.Valid(cid) && clientIDRegexp.Copy().Match(cid)
+	return utf8.Valid(cid) && clientIDRegexp.Match(cid)
 }

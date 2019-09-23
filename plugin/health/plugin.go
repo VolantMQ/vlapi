@@ -25,7 +25,7 @@ const (
 )
 
 func init() {
-	Plugin.V = "0.0.1"
+	Plugin.V = vlplugin.Version()
 	Plugin.N = "health"
 	Plugin.T = "health"
 }

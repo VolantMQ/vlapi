@@ -26,6 +26,8 @@ type Descriptor struct {
 	T string
 }
 
+var version string
+
 // Info return plugin information
 type Info interface {
 	// Version in format major.minor.patch
@@ -104,4 +106,8 @@ func (b *Descriptor) Desc() string {
 // Type of plugin
 func (b *Descriptor) Type() string {
 	return b.T
+}
+
+func Version() string {
+	return version
 }
