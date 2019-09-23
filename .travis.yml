@@ -12,7 +12,8 @@ matrix:
       env: GORELEASER_FILE=./.goreleaser_linux.yaml
 before_install:
   - npm install -g codeclimate-test-reporter
-  - go mod download
+  - curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.18.0
+  - curl -sL http://git.io/goreleaser | bash
 install:
   - go mod tidy
 script:
