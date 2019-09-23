@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/VolantMQ/vlapi/plugin"
-	"github.com/VolantMQ/vlapi/plugin/persistence/mem"
+	vlplugin "github.com/VolantMQ/vlapi/plugin"
+	persistenceMem "github.com/VolantMQ/vlapi/plugin/persistence/mem"
 )
 
 type persistencePlugin struct {
@@ -16,7 +16,7 @@ var _ vlplugin.Info = (*persistencePlugin)(nil)
 var Plugin persistencePlugin
 
 func init() {
-	Plugin.V = "0.1.0"
+	Plugin.V = vlplugin.Version()
 	Plugin.N = "mem"
 	Plugin.T = "persistence"
 }

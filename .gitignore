@@ -18,3 +18,5 @@ vendor
 coverage.txt
 
 plugin_*_darwin
+
+dist
