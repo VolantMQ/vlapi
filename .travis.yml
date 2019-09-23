@@ -13,7 +13,6 @@ matrix:
 before_install:
   - npm install -g codeclimate-test-reporter
   - curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.18.0
-  - test -n "$TRAVIS_TAG" && curl -sL https://git.io/goreleaser | bash
 install:
   - go mod tidy
 script:
@@ -22,8 +21,10 @@ script:
   - go build -race -gcflags "-N -l" ./plugin/auth
   - go build -race -gcflags "-N -l" ./subscriber
   - go build -race -gcflags "-N -l" ./mqttp
+  - go build -race -gcflags "-N -l" -buildmode=plugin ./plugin/debug
+  - go build -race -gcflags "-N -l" -buildmode=plugin ./plugin/health
+  - go build -race -gcflags "-N -l" -buildmode=plugin ./plugin/persistence/bbolt/plugin
   - go test -race -coverprofile=coverage.txt -covermode=atomic -v $(go list ./... | grep -v /vendor/)
-  - goreleaser -f $GORELEASER_FILE --snapshot
 after_success:
   - bash <(curl -s https://codecov.io/bash)
   - codeclimate-test-reporter < coverage.txt
