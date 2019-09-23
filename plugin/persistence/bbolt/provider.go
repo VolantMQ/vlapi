@@ -48,12 +48,6 @@ type impl struct {
 	sys *system
 }
 
-var initialBuckets = [][]byte{
-	bucketRetained,
-	bucketSessions,
-	bucketSystem,
-}
-
 // nolint: golint
 func Load(c interface{}, params *vlplugin.SysParams) (persistence.IFace, error) {
 	config, ok := c.(*Config)

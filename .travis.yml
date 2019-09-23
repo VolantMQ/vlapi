@@ -1,19 +1,19 @@
 language: go
 go:
-  - "1.10"
-  - "1.10.3"
+  - "1.13"
 sudo: false
 notifications:
   email: false
 os:
   - linux
+  - osx
 before_install:
   - npm install -g codeclimate-test-reporter
   - go get github.com/alecthomas/gometalinter
   - gometalinter --install
   - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 install:
-  - dep ensure
+  - go mod tidy
 script:
   - go build -race -gcflags "-N -l" ./plugin/persistence
   - go build -race -gcflags "-N -l" ./plugin/auth

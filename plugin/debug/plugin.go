@@ -6,7 +6,7 @@ import (
 	"runtime"
 	"strings"
 
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 
 	vlplugin "github.com/VolantMQ/vlapi/plugin"
 )
