@@ -36,34 +36,6 @@ var (
 		0x0, 0x15, 's', 'e', 'n', 'd', ' ', 'm', 'e', ' ', 'y', 'o', 'u', 'r', ' ', 'm', 'i', 'l', 'l', 'i', 'o', 'n', 's',
 		0x0, 0x0,
 	}
-
-	// nolint: megacheck,varcheck
-	msgBytes = []byte{
-		byte(CONNECT << 4),
-		60,
-		0, // Length MSB (0)
-		4, // Length LSB (4)
-		'M', 'Q', 'T', 'T',
-		4,   // Protocol level 4
-		206, // connect flags 11001110, will QoS = 01
-		0,   // Keep Alive MSB (0)
-		10,  // Keep Alive LSB (10)
-		0,   // Client ID MSB (0)
-		7,   // Client ID LSB (7)
-		's', 'u', 'r', 'g', 'e', 'm', 'q',
-		0, // Will Topic MSB (0)
-		4, // Will Topic LSB (4)
-		'w', 'i', 'l', 'l',
-		0,  // Will Message MSB (0)
-		12, // Will Message LSB (12)
-		's', 'e', 'n', 'd', ' ', 'm', 'e', ' ', 'h', 'o', 'm', 'e',
-		0, // Username ID MSB (0)
-		7, // Username ID LSB (7)
-		's', 'u', 'r', 'g', 'e', 'm', 'q',
-		0,  // Password ID MSB (0)
-		10, // Password ID LSB (10)
-		'v', 'e', 'r', 'y', 's', 'e', 'c', 'r', 'e', 't',
-	}
 )
 
 func TestReadLPBytes(t *testing.T) {
@@ -141,37 +113,6 @@ func TestQosCodes(t *testing.T) {
 		t.Errorf("QOS codes invalid")
 	}
 }
-
-//func TestConnackReturnCodes(t *testing.T) {
-//	require.Equal(t, ErrInvalidProtocolVersion.Error(), ConnAckCode(1).Error(), "Incorrect ConnackCode error value.")
-//
-//	require.Equal(t, ErrIdentifierRejected.Error(), ConnAckCode(2).Error(), "Incorrect ConnackCode error value.")
-//
-//	require.Equal(t, ErrServerUnavailable.Error(), ConnAckCode(3).Error(), "Incorrect ConnackCode error value.")
-//
-//	require.Equal(t, ErrBadUsernameOrPassword.Error(), ConnAckCode(4).Error(), "Incorrect ConnackCode error value.")
-//
-//	require.Equal(t, ErrNotAuthorized.Error(), ConnAckCode(5).Error(), "Incorrect ConnackCode error value.")
-//
-//	_, ok := ValidConnAckError(ErrInvalidProtocolVersion)
-//	require.True(t, ok)
-//
-//	_, ok = ValidConnAckError(ErrIdentifierRejected)
-//	require.True(t, ok)
-//
-//	_, ok = ValidConnAckError(ErrServerUnavailable)
-//	require.True(t, ok)
-//
-//	_, ok = ValidConnAckError(ErrBadUsernameOrPassword)
-//	require.True(t, ok)
-//
-//	_, ok = ValidConnAckError(ErrNotAuthorized)
-//	require.True(t, ok)
-//
-//	_, ok = ValidConnAckError(errors.New("bla bla bla bla"))
-//	require.False(t, ok)
-//
-//}
 
 func TestFixedHeaderFlags(t *testing.T) {
 	type detail struct {

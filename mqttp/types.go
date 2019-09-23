@@ -75,8 +75,8 @@ func NewTopic(topic []byte) (*Topic, error) {
 		if idx := bytes.Index(topic, topicSep); idx == 0 {
 			t.dollarPrefix = topic[:idx]
 
-			if bytes.Compare(t.dollarPrefix, sharePrefix) == 0 {
-				if !SharedTopicRegexp.Copy().Match(topic) {
+			if bytes.Equal(t.dollarPrefix, sharePrefix) {
+				if !SharedTopicRegexp.Match(topic) {
 					return nil, CodeProtocolError
 				}
 
@@ -89,7 +89,7 @@ func NewTopic(topic []byte) (*Topic, error) {
 		}
 	}
 
-	if !TopicFilterRegexp.Copy().Match(t.filter) {
+	if !TopicFilterRegexp.Match(t.filter) {
 		return nil, CodeProtocolError
 	}
 

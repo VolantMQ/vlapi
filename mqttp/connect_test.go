@@ -41,12 +41,14 @@ func TestConnectMessageFields(t *testing.T) {
 	require.False(t, msg.IsClean(), "Error setting clean session flag")
 
 	willMsg := NewPublish(ProtocolV31)
-	willMsg.SetTopic("topic")
-	willMsg.SetQoS(QoS1)
+	err := willMsg.SetTopic("topic")
+	require.NoError(t, err)
+	err = willMsg.SetQoS(QoS1)
+	require.NoError(t, err)
 	willMsg.SetRetain(true)
 	willMsg.SetPayload([]byte("message"))
 
-	err := msg.SetWill(willMsg)
+	err = msg.SetWill(willMsg)
 	require.NoError(t, err)
 
 	//willTopic, willMessage, willQoS, willRetain, will := msg.Will()
@@ -450,12 +452,14 @@ func TestConnectMessageEncode(t *testing.T) {
 	msg := newTestConnect(t, ProtocolV311)
 
 	willMsg := NewPublish(ProtocolV31)
-	willMsg.SetTopic("will")
-	willMsg.SetQoS(QoS1)
+	err := willMsg.SetTopic("will")
+	require.NoError(t, err)
+	err = willMsg.SetQoS(QoS1)
+	require.NoError(t, err)
 	willMsg.SetRetain(false)
 	willMsg.SetPayload([]byte("send me home"))
 
-	err := msg.SetWill(willMsg)
+	err = msg.SetWill(willMsg)
 	require.NoError(t, err)
 
 	msg.SetClean(true)

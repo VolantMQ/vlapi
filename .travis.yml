@@ -12,19 +12,15 @@ matrix:
       env: GORELEASER_FILE=./.goreleaser_linux.yaml
 before_install:
   - npm install -g codeclimate-test-reporter
-  - go get github.com/alecthomas/gometalinter
-  - gometalinter --install
+  - go mod download
 install:
   - go mod tidy
 script:
+  - golangci-lint run
   - go build -race -gcflags "-N -l" ./plugin/persistence
   - go build -race -gcflags "-N -l" ./plugin/auth
   - go build -race -gcflags "-N -l" ./subscriber
   - go build -race -gcflags "-N -l" ./mqttp
-  - go build -race -gcflags "-N -l" -buildmode=plugin ./plugin/debug
-  - go build -race -gcflags "-N -l" -buildmode=plugin ./plugin/health
-  - go build -race -gcflags "-N -l" -buildmode=plugin ./plugin/persistence/bbolt/plugin
-  - gometalinter --fast --exclude=corefoundation.go --deadline=360s --enable-gc --sort=path --cyclo-over=40 --dupl-threshold=100 --disable=gotype --vendor --enable=goimports ./...
   - go test -race -coverprofile=coverage.txt -covermode=atomic -v $(go list ./... | grep -v /vendor/)
   - goreleaser -f $GORELEASER_FILE --snapshot
 after_success:
