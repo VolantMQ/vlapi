@@ -217,17 +217,19 @@ var propertyAllowedMessageTypes = map[PropertyID]map[Type]bool{
 		DISCONNECT: false,
 		AUTH:       false},
 	PropertyUserProperty: {
-		CONNECT:    true,
-		CONNACK:    true,
-		PUBLISH:    true,
-		PUBACK:     true,
-		PUBREC:     true,
-		PUBREL:     true,
-		PUBCOMP:    true,
-		SUBACK:     true,
-		UNSUBACK:   true,
-		DISCONNECT: true,
-		AUTH:       true},
+		CONNECT:     true,
+		CONNACK:     true,
+		PUBLISH:     true,
+		PUBACK:      true,
+		PUBREC:      true,
+		PUBREL:      true,
+		PUBCOMP:     true,
+		SUBSCRIBE:   true,
+		SUBACK:      true,
+		UNSUBSCRIBE: true,
+		UNSUBACK:    true,
+		DISCONNECT:  true,
+		AUTH:        true},
 }
 
 var propertyTypeMap = map[PropertyID]PropertyType{
@@ -379,28 +381,6 @@ func (p *property) ForEach(f func(PropertyID, PropertyToType)) {
 func writePrefixID(id PropertyID, b []byte) int {
 	return binary.PutUvarint(b, uint64(id))
 }
-
-//func decodeProperties(t Type, buf []byte) (*property, int, error) {
-//	p := newProperty()
-//
-//	total, err := p.decode(t, buf)
-//	if err != nil {
-//		return nil, total, err
-//	}
-//
-//	return p, total, nil
-//}
-
-//func encodeProperties(p *property, dst []byte) (int, error) {
-//	if p == nil {
-//		if len(dst) > 0 {
-//			dst[0] = 0
-//		}
-//		return 1, nil
-//	}
-//
-//	return p.encode(dst)
-//}
 
 func (p *property) decode(t Type, from []byte) (int, error) {
 	offset := 0
