@@ -23,16 +23,15 @@ import (
 func TestMessageHeaderFields(t *testing.T) {
 	hdr := &header{}
 
-	hdr.setRemainingLength(33) // nolint: errcheck
+	err := hdr.setRemainingLength(33)
+	require.NoError(t, err)
 
 	require.Equal(t, int32(33), hdr.RemainingLength())
 
-	err := hdr.setRemainingLength(268435456)
-
+	err = hdr.setRemainingLength(268435456)
 	require.Error(t, err)
 
 	err = hdr.setRemainingLength(-1)
-
 	require.Error(t, err)
 
 	hdr.setType(PUBREL)
@@ -77,8 +76,8 @@ func TestMessageHeaderDecode4(t *testing.T) {
 	}
 
 	_, err := hdr.decode(buf)
-
-	require.EqualError(t, ErrInsufficientDataSize, err.Error())
+	require.Error(t, err)
+	require.EqualError(t, err, ErrInsufficientDataSize.Error())
 	require.Equal(t, maxRemainingLength, hdr.RemainingLength())
 }
 
@@ -189,5 +188,6 @@ func TestMessageHeaderEncode4(t *testing.T) {
 
 	sz, err := msg.Size()
 	require.Equal(t, 0, sz)
-	require.EqualError(t, ErrInvalidLength, err.Error())
+	require.Error(t, err)
+	require.EqualError(t, err, ErrInvalidLength.Error())
 }

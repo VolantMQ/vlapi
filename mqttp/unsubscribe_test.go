@@ -35,11 +35,12 @@ func TestUnSubscribeMessageFields(t *testing.T) {
 	topic, err = NewTopic([]byte("/a/b/c/#"))
 	require.NoError(t, err)
 
-	msg.AddTopic(topic) // nolint: errcheck
+	err = msg.AddTopic(topic) // nolint: errcheck
+	require.NoError(t, err)
 	require.Equal(t, 1, len(msg.topics), "Error adding topic")
 	//
-	//msg.AddTopic("/a/b/#/c") // nolint: errcheck
-	//require.Equal(t, 1, len(msg.topics), "Error adding duplicate topic.")
+	// msg.AddTopic("/a/b/#/c") // nolint: errcheck
+	// require.Equal(t, 1, len(msg.topics), "Error adding duplicate topic.")
 }
 
 func TestUnSubscribeMessageDecode(t *testing.T) {
@@ -115,15 +116,18 @@ func TestUnSubscribeMessageEncode(t *testing.T) {
 	topic, err = NewTopic([]byte("volantmq"))
 	require.NoError(t, err)
 
-	msg.AddTopic(topic) // nolint: errcheck
+	err = msg.AddTopic(topic)
+	require.NoError(t, err)
 
 	topic, err = NewTopic([]byte("/a/b/c/#"))
 	require.NoError(t, err)
-	msg.AddTopic(topic) // nolint: errcheck
+	err = msg.AddTopic(topic)
+	require.NoError(t, err)
 
 	topic, err = NewTopic([]byte("/a/b/cdd/#"))
 	require.NoError(t, err)
-	msg.AddTopic(topic) // nolint: errcheck
+	err = msg.AddTopic(topic)
+	require.NoError(t, err)
 
 	dst := make([]byte, 100)
 	n, err := msg.Encode(dst)
@@ -131,7 +135,7 @@ func TestUnSubscribeMessageEncode(t *testing.T) {
 	require.NoError(t, err, "Error encoding message")
 	require.Equal(t, len(buf), n, "Error encoding message")
 
-	//msg1 := NewUnSubscribeMessage()
+	// msg1 := NewUnSubscribeMessage()
 
 	var m1 IFace
 	m1, n, err = Decode(ProtocolV311, dst)
@@ -142,7 +146,7 @@ func TestUnSubscribeMessageEncode(t *testing.T) {
 	require.Equal(t, len(buf), n, "Error decoding message")
 	require.Equal(t, 3, len(msg1.topics), "Error decoding message")
 
-	//require.Equal(t, buf, dst[:n], "Error decoding message")
+	// require.Equal(t, buf, dst[:n], "Error decoding message")
 }
 
 // test to ensure encoding and decoding are the same

@@ -31,12 +31,13 @@ func TestMessageTypeNewMessage(t *testing.T) {
 	tp := RESERVED
 
 	msg, err := New(ProtocolV311, tp)
-	require.EqualError(t, ErrInvalidMessageType, err.Error())
+	require.EqualError(t, err, ErrInvalidMessageType.Error())
 	require.Nil(t, msg)
 
 	tp = AUTH
 	msg, err = New(ProtocolV311, tp)
-	require.EqualError(t, ErrInvalidMessageType, err.Error())
+	require.Error(t, err)
+	require.EqualError(t, err, ErrInvalidMessageType.Error())
 	require.Nil(t, msg)
 
 	msg, err = New(ProtocolV50, tp)
@@ -45,7 +46,8 @@ func TestMessageTypeNewMessage(t *testing.T) {
 
 	tp = Type(143)
 	msg, err = New(ProtocolV50, tp)
-	require.EqualError(t, ErrInvalidMessageType, err.Error())
+	require.Error(t, err)
+	require.EqualError(t, err, ErrInvalidMessageType.Error())
 	require.Nil(t, msg)
 
 	tp = CONNACK

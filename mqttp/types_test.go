@@ -8,61 +8,62 @@ import (
 
 func TestTopicNewInvalidArgs(t *testing.T) {
 	topic, err := NewTopic([]byte{})
+	require.Error(t, err)
 	require.Error(t, CodeMalformedPacket, err.Error())
 	require.Nil(t, topic)
 }
 
 func TestTopicNewInvalidWildcard(t *testing.T) {
 	topic, err := NewTopic([]byte("##"))
-	require.Error(t, CodeProtocolError, err.Error())
+	require.Error(t, err, CodeProtocolError)
 	require.Nil(t, topic)
 
 	topic, err = NewTopic([]byte("#+"))
-	require.Error(t, CodeProtocolError, err.Error())
+	require.Error(t, err, CodeProtocolError)
 	require.Nil(t, topic)
 
 	topic, err = NewTopic([]byte("+#"))
-	require.Error(t, CodeProtocolError, err.Error())
+	require.Error(t, err, CodeProtocolError)
 	require.Nil(t, topic)
 
 	topic, err = NewTopic([]byte("#/"))
-	require.Error(t, CodeProtocolError, err.Error())
+	require.Error(t, err, CodeProtocolError)
 	require.Nil(t, topic)
 
 	topic, err = NewTopic([]byte("/#/"))
-	require.Error(t, CodeProtocolError, err.Error())
+	require.Error(t, err, CodeProtocolError)
 	require.Nil(t, topic)
 
 	topic, err = NewTopic([]byte("++"))
-	require.Error(t, CodeProtocolError, err.Error())
+	require.Error(t, err, CodeProtocolError)
 	require.Nil(t, topic)
 }
 
 func TestTopicNewInvalidShared(t *testing.T) {
 	topic, err := NewTopic([]byte("$share"))
-	require.Error(t, CodeProtocolError, err.Error())
+	require.Error(t, err, CodeProtocolError)
 	require.Nil(t, topic)
 
 	topic, err = NewTopic([]byte("$share//"))
-	require.Error(t, CodeProtocolError, err.Error())
+	require.Error(t, err, CodeProtocolError)
 	require.Nil(t, topic)
 
 	topic, err = NewTopic([]byte("$share///ads"))
-	require.Error(t, CodeProtocolError, err.Error())
+	require.Error(t, err, CodeProtocolError)
 	require.Nil(t, topic)
 
 	topic, err = NewTopic([]byte("$share/#/ads"))
-	require.Error(t, CodeProtocolError, err.Error())
+	require.Error(t, err, CodeProtocolError)
 	require.Nil(t, topic)
 
 	topic, err = NewTopic([]byte("$share/+/ads"))
-	require.Error(t, CodeProtocolError, err.Error())
+	require.Error(t, err, CodeProtocolError)
 	require.Nil(t, topic)
 }
 
 func TestTopicNewValidShared(t *testing.T) {
 	topic, err := NewTopic([]byte("$share/a/ads"))
-	require.Error(t, CodeProtocolError, err.Error())
+	require.Error(t, err, CodeProtocolError)
 	require.Nil(t, topic)
 
 }
