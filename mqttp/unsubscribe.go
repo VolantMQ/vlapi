@@ -74,6 +74,7 @@ func (msg *UnSubscribe) decodeMessage(from []byte) (int, error) {
 		if err != nil {
 			return offset, err
 		}
+		remLen -= n
 	}
 
 	for remLen > 0 {

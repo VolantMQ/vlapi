@@ -42,10 +42,10 @@ func TestDisconnectMessageDecode(t *testing.T) {
 	}
 
 	_, _, err = Decode(ProtocolV50, buf)
-	require.EqualError(t, CodeMalformedPacket, err.Error())
+	require.EqualError(t, err, CodeMalformedPacket.Error())
 
 	_, _, err = Decode(ProtocolV311, buf)
-	require.EqualError(t, CodeRefusedServerUnavailable, err.Error())
+	require.EqualError(t, err, CodeRefusedServerUnavailable.Error())
 }
 
 func TestDisconnectMessageEncode(t *testing.T) {

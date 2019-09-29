@@ -81,11 +81,11 @@ func TestWriteLPBytes(t *testing.T) {
 	buf = make([]byte, 4)
 
 	_, err := WriteLPBytes(buf, testString)
-	require.EqualError(t, ErrInsufficientBufferSize, err.Error())
+	require.EqualError(t, err, ErrInsufficientBufferSize.Error())
 
 	testString = make([]byte, int(MaxLPString)+1)
 	_, err = WriteLPBytes(buf, testString)
-	require.EqualError(t, ErrInvalidLPStringSize, err.Error())
+	require.EqualError(t, err, ErrInvalidLPStringSize.Error())
 }
 
 func TestMessageTypes(t *testing.T) {
@@ -105,12 +105,6 @@ func TestMessageTypes(t *testing.T) {
 		DISCONNECT != 14 ||
 		AUTH != 15 {
 		t.Errorf("Message types have invalid code")
-	}
-}
-
-func TestQosCodes(t *testing.T) {
-	if QoS0 != 0 || QoS1 != 1 || QoS2 != 2 {
-		t.Errorf("QOS codes invalid")
 	}
 }
 

@@ -31,7 +31,8 @@ func TestSubAckMessageFields(t *testing.T) {
 	id, _ := msg.ID()
 	require.Equal(t, IDType(100), id, "Error setting packet ID.")
 
-	msg.AddReturnCode(1) // nolint: errcheck
+	err = msg.AddReturnCode(1) // nolint: errcheck
+	require.NoError(t, err)
 	require.Equal(t, 1, len(msg.ReturnCodes()), "Error adding return code.")
 
 	err = msg.AddReturnCode(0x90)
@@ -99,10 +100,14 @@ func TestSubAckMessageEncode(t *testing.T) {
 	require.True(t, ok, "Couldn't cast message type")
 
 	msg.SetPacketID(7)
-	msg.AddReturnCode(0)    // nolint: errcheck
-	msg.AddReturnCode(1)    // nolint: errcheck
-	msg.AddReturnCode(2)    // nolint: errcheck
-	msg.AddReturnCode(0x80) // nolint: errcheck
+	err = msg.AddReturnCode(0)
+	require.NoError(t, err)
+	err = msg.AddReturnCode(1)
+	require.NoError(t, err)
+	err = msg.AddReturnCode(2)
+	require.NoError(t, err)
+	err = msg.AddReturnCode(0x80)
+	require.NoError(t, err)
 
 	dst := make([]byte, 10)
 	n, err := msg.Encode(dst)

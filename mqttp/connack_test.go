@@ -179,7 +179,7 @@ func TestConnAckEncodeEnsureSize(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = msg.Encode(dst)
-	require.EqualError(t, ErrInsufficientBufferSize, err.Error())
+	require.EqualError(t, err, ErrInsufficientBufferSize.Error())
 }
 
 func TestConnAckCodeWrite(t *testing.T) {

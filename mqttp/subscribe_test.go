@@ -92,7 +92,7 @@ func TestSubscribeMessageDecodeInvalidTopics(t *testing.T) {
 	}
 
 	_, _, err := Decode(ProtocolV311, buf)
-	require.EqualError(t, CodeProtocolError, err.Error(), "Error decoding message.")
+	require.EqualError(t, err, CodeProtocolError.Error(), "Error decoding message.")
 }
 
 func TestSubscribeMessageDecodeNoTopics(t *testing.T) {
@@ -104,7 +104,7 @@ func TestSubscribeMessageDecodeNoTopics(t *testing.T) {
 	}
 
 	_, _, err := Decode(ProtocolV311, buf)
-
+	require.Error(t, err)
 	require.Error(t, CodeProtocolError, err.Error())
 }
 
@@ -120,7 +120,7 @@ func TestSubscribeMessageDecodeNoTopicQoS(t *testing.T) {
 	}
 
 	_, _, err := Decode(ProtocolV311, buf)
-
+	require.Error(t, err)
 	require.Error(t, CodeProtocolError, err.Error())
 }
 
@@ -155,15 +155,18 @@ func TestSubscribeMessageEncodeValid(t *testing.T) {
 	var topic *Topic
 	topic, err = NewSubscribeTopic([]byte("volantmq"), 0)
 	require.NoError(t, err)
-	msg.AddTopic(topic) // nolint: errcheck
+	err = msg.AddTopic(topic)
+	require.NoError(t, err)
 
 	topic, err = NewSubscribeTopic([]byte("/a/b/c/#"), 1)
 	require.NoError(t, err)
-	msg.AddTopic(topic) // nolint: errcheck
+	err = msg.AddTopic(topic)
+	require.NoError(t, err)
 
 	topic, err = NewSubscribeTopic([]byte("/a/b/cdd/#"), 2)
 	require.NoError(t, err)
-	msg.AddTopic(topic) // nolint: errcheck
+	err = msg.AddTopic(topic)
+	require.NoError(t, err)
 
 	dst := make([]byte, 100)
 	n, err := msg.Encode(dst)
@@ -202,7 +205,7 @@ func TestSubscribeDecodeEncodeEquiv(t *testing.T) {
 		2, // QoS
 	}
 
-	//msg := NewSubscribeMessage()
+	// msg := NewSubscribeMessage()
 	m, n, err := Decode(ProtocolV311, buf)
 	msg, ok := m.(*Subscribe)
 	require.Equal(t, true, ok, "Invalid message type")
@@ -225,7 +228,7 @@ func TestSubscribeDecodeEncodeEquiv(t *testing.T) {
 // decode, encode, and decode again
 func TestSubscribeDecodeOrder(t *testing.T) {
 	// TODO
-	//buf := []byte{
+	// buf := []byte{
 	//	byte(SUBSCRIBE<<4) | 2,
 	//	37,
 	//	0, // packet ID MSB (0)
@@ -242,17 +245,17 @@ func TestSubscribeDecodeOrder(t *testing.T) {
 	//	10, // topic name LSB (10)
 	//	'/', 'a', '/', 'b', '/', '#', '/', 'c', 'd', 'd',
 	//	2, // QoS
-	//}
+	// }
 
-	//m, n, err := Decode(ProtocolV311, buf)
-	//msg, ok := m.(*Subscribe)
-	//require.Equal(t, true, ok, "Invalid message type")
-	//require.NoError(t, err, "Error decoding message")
-	//require.Equal(t, len(buf), n, "Raw message length does not match")
+	// m, n, err := Decode(ProtocolV311, buf)
+	// msg, ok := m.(*Subscribe)
+	// require.Equal(t, true, ok, "Invalid message type")
+	// require.NoError(t, err, "Error decoding message")
+	// require.Equal(t, len(buf), n, "Raw message length does not match")
 
-	//i := 0
-	//TODO
-	//msg.RangeTopics(func(topic string, ops SubscriptionOptions) {
+	// i := 0
+	// TODO
+	// msg.RangeTopics(func(topic string, ops SubscriptionOptions) {
 	//	switch i {
 	//	case 0:
 	//		require.Equal(t, "volantmq", topic)
@@ -267,5 +270,5 @@ func TestSubscribeDecodeOrder(t *testing.T) {
 	//		assert.Error(t, errors.New("invalid topics count"))
 	//	}
 	//	i++
-	//})
+	// })
 }
