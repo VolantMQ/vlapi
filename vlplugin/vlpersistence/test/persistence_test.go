@@ -7,11 +7,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	persistenceMem "github.com/VolantMQ/vlapi/vlplugin/persistence/mem"
 	"github.com/VolantMQ/vlapi/vlplugin/vlpersistence"
+	persistenceMem "github.com/VolantMQ/vlapi/vlplugin/vlpersistence/mem"
 
-	_ "github.com/VolantMQ/vlapi/vlplugin/persistence/bbolt"
-	_ "github.com/VolantMQ/vlapi/vlplugin/persistence/mem"
+	_ "github.com/VolantMQ/vlapi/vlplugin/vlpersistence/bbolt"
+	_ "github.com/VolantMQ/vlapi/vlplugin/vlpersistence/mem"
 )
 
 var curr vlpersistence.IFace

@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/VolantMQ/vlapi/vlplugin"
-	persistenceMem "github.com/VolantMQ/vlapi/vlplugin/persistence/mem"
+	persistenceMem "github.com/VolantMQ/vlapi/vlplugin/vlpersistence/mem"
 )
 
 type persistencePlugin struct {
