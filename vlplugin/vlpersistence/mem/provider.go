@@ -1,8 +1,8 @@
 package persistenceMem
 
 import (
-	"github.com/VolantMQ/vlapi/plugin"
-	"github.com/VolantMQ/vlapi/plugin/persistence"
+	"github.com/VolantMQ/vlapi/vlplugin"
+	"github.com/VolantMQ/vlapi/vlplugin/vlpersistence"
 )
 
 type dbStatus struct {
@@ -17,7 +17,7 @@ type impl struct {
 }
 
 // nolint: golint
-func Load(c interface{}, params *vlplugin.SysParams) (persistence.IFace, error) {
+func Load(c interface{}, params *vlplugin.SysParams) (vlpersistence.IFace, error) {
 	pl := &impl{}
 
 	pl.status.done = make(chan struct{})
@@ -38,30 +38,30 @@ func Load(c interface{}, params *vlplugin.SysParams) (persistence.IFace, error) 
 	return pl, nil
 }
 
-func (p *impl) System() (persistence.System, error) {
+func (p *impl) System() (vlpersistence.System, error) {
 	select {
 	case <-p.status.done:
-		return nil, persistence.ErrNotOpen
+		return nil, vlpersistence.ErrNotOpen
 	default:
 	}
 
 	return &p.sys, nil
 }
 
-func (p *impl) Sessions() (persistence.Sessions, error) {
+func (p *impl) Sessions() (vlpersistence.Sessions, error) {
 	select {
 	case <-p.status.done:
-		return nil, persistence.ErrNotOpen
+		return nil, vlpersistence.ErrNotOpen
 	default:
 	}
 
 	return &p.s, nil
 }
 
-func (p *impl) Retained() (persistence.Retained, error) {
+func (p *impl) Retained() (vlpersistence.Retained, error) {
 	select {
 	case <-p.status.done:
-		return nil, persistence.ErrNotOpen
+		return nil, vlpersistence.ErrNotOpen
 	default:
 	}
 
@@ -71,7 +71,7 @@ func (p *impl) Retained() (persistence.Retained, error) {
 func (p *impl) Shutdown() error {
 	select {
 	case <-p.status.done:
-		return persistence.ErrNotOpen
+		return vlpersistence.ErrNotOpen
 	default:
 		close(p.status.done)
 	}

@@ -4,22 +4,21 @@ import (
 	"encoding/binary"
 	"errors"
 
+	"github.com/VolantMQ/vlapi/vlplugin/vlpersistence"
 	"github.com/coreos/bbolt"
-
-	"github.com/VolantMQ/vlapi/plugin/persistence"
 )
 
 type sessions struct {
 	*dbStatus
 }
 
-var _ persistence.Sessions = (*sessions)(nil)
+var _ vlpersistence.Sessions = (*sessions)(nil)
 
 func (s *sessions) init() error {
 	return s.db.Update(func(tx *bbolt.Tx) error {
 		sessions := tx.Bucket(bucketSessions)
 		if sessions == nil {
-			return persistence.ErrNotInitialized
+			return vlpersistence.ErrNotInitialized
 		}
 
 		val := sessions.Get(sessionsCount)
@@ -39,7 +38,7 @@ func (s *sessions) Exists(id []byte) bool {
 	err := s.db.View(func(tx *bbolt.Tx) error {
 		sessions := tx.Bucket(bucketSessions)
 		if sessions == nil {
-			return persistence.ErrNotInitialized
+			return vlpersistence.ErrNotInitialized
 		}
 
 		if ses := sessions.Bucket(id); ses == nil {
@@ -73,7 +72,7 @@ func (s *sessions) SubscriptionsStore(id []byte, data []byte) error {
 	return s.db.Update(func(tx *bbolt.Tx) error {
 		sessions := tx.Bucket(bucketSessions)
 		if sessions == nil {
-			return persistence.ErrNotInitialized
+			return vlpersistence.ErrNotInitialized
 		}
 
 		session, err := getSession(id, sessions)
@@ -89,12 +88,12 @@ func (s *sessions) SubscriptionsDelete(id []byte) error {
 	return s.db.Update(func(tx *bbolt.Tx) error {
 		sessions := tx.Bucket(bucketSessions)
 		if sessions == nil {
-			return persistence.ErrNotInitialized
+			return vlpersistence.ErrNotInitialized
 		}
 
 		session := tx.Bucket(id)
 		if session == nil {
-			return persistence.ErrNotFound
+			return vlpersistence.ErrNotFound
 		}
 
 		if err := session.Delete(bucketSubscriptions); err != nil && err != bbolt.ErrBucketNotFound {
@@ -104,15 +103,15 @@ func (s *sessions) SubscriptionsDelete(id []byte) error {
 	})
 }
 
-func (s *sessions) PacketsForEachQoS0(id []byte, ctx interface{}, load persistence.PacketLoader) error {
+func (s *sessions) PacketsForEachQoS0(id []byte, ctx interface{}, load vlpersistence.PacketLoader) error {
 	return s.packetsForEach(id, ctx, load, bucketPacketsQoS0)
 }
 
-func (s *sessions) PacketsForEachQoS12(id []byte, ctx interface{}, load persistence.PacketLoader) error {
+func (s *sessions) PacketsForEachQoS12(id []byte, ctx interface{}, load vlpersistence.PacketLoader) error {
 	return s.packetsForEach(id, ctx, load, bucketPacketsQoS12)
 }
 
-func (s *sessions) PacketsForEachUnAck(id []byte, ctx interface{}, load persistence.PacketLoader) error {
+func (s *sessions) PacketsForEachUnAck(id []byte, ctx interface{}, load vlpersistence.PacketLoader) error {
 	return s.packetsForEach(id, ctx, load, bucketPacketsUnAck)
 }
 
@@ -128,7 +127,7 @@ func (s *sessions) PacketCountUnAck(id []byte) (uint64, error) {
 	return s.packetCount(id, bucketPacketsUnAck)
 }
 
-func (s *sessions) PacketsStore(id []byte, packets persistence.PersistedPackets) error {
+func (s *sessions) PacketsStore(id []byte, packets vlpersistence.PersistedPackets) error {
 	return s.db.Update(func(tx *bbolt.Tx) error {
 		if len(packets.UnAck) > 0 {
 			if err := s.packetsStore(tx, id, bucketPacketsUnAck, packets.UnAck); err != nil {
@@ -152,21 +151,21 @@ func (s *sessions) PacketsStore(id []byte, packets persistence.PersistedPackets)
 	})
 }
 
-func (s *sessions) PacketStoreQoS0(id []byte, pkt *persistence.PersistedPacket) error {
+func (s *sessions) PacketStoreQoS0(id []byte, pkt *vlpersistence.PersistedPacket) error {
 	return s.db.Update(func(tx *bbolt.Tx) error {
-		return s.packetsStore(tx, id, bucketPacketsQoS0, []*persistence.PersistedPacket{pkt})
+		return s.packetsStore(tx, id, bucketPacketsQoS0, []*vlpersistence.PersistedPacket{pkt})
 	})
 }
 
-func (s *sessions) PacketStoreQoS12(id []byte, pkt *persistence.PersistedPacket) error {
+func (s *sessions) PacketStoreQoS12(id []byte, pkt *vlpersistence.PersistedPacket) error {
 	return s.db.Update(func(tx *bbolt.Tx) error {
-		return s.packetsStore(tx, id, bucketPacketsQoS12, []*persistence.PersistedPacket{pkt})
+		return s.packetsStore(tx, id, bucketPacketsQoS12, []*vlpersistence.PersistedPacket{pkt})
 	})
 }
 
-func (s *sessions) PacketStoreUnAck(id []byte, pkt *persistence.PersistedPacket) error {
+func (s *sessions) PacketStoreUnAck(id []byte, pkt *vlpersistence.PersistedPacket) error {
 	return s.db.Update(func(tx *bbolt.Tx) error {
-		return s.packetsStore(tx, id, bucketPacketsUnAck, []*persistence.PersistedPacket{pkt})
+		return s.packetsStore(tx, id, bucketPacketsUnAck, []*vlpersistence.PersistedPacket{pkt})
 	})
 }
 
@@ -175,7 +174,7 @@ func (s *sessions) PacketsDelete(id []byte) error {
 		if sessions := tx.Bucket(bucketSessions); sessions != nil {
 			ses := sessions.Bucket(id)
 			if ses == nil {
-				return persistence.ErrNotFound
+				return vlpersistence.ErrNotFound
 			}
 			if err := ses.DeleteBucket(bucketPackets); err != nil && err != bbolt.ErrBucketNotFound {
 				return err
@@ -185,7 +184,7 @@ func (s *sessions) PacketsDelete(id []byte) error {
 	})
 }
 
-func (s *sessions) LoadForEach(loader persistence.SessionLoader, context interface{}) error {
+func (s *sessions) LoadForEach(loader vlpersistence.SessionLoader, context interface{}) error {
 	return s.db.Update(func(tx *bbolt.Tx) error {
 		sessions := tx.Bucket(bucketSessions)
 		if sessions == nil {
@@ -199,7 +198,7 @@ func (s *sessions) LoadForEach(loader persistence.SessionLoader, context interfa
 			}
 
 			session := sessions.Bucket(k)
-			st := &persistence.SessionState{}
+			st := &vlpersistence.SessionState{}
 
 			state := session.Bucket(bucketState)
 			if state != nil {
@@ -213,7 +212,7 @@ func (s *sessions) LoadForEach(loader persistence.SessionLoader, context interfa
 				st.Subscriptions = state.Get(bucketSubscriptions)
 
 				if expire := state.Bucket(bucketExpire); expire != nil {
-					st.Expire = &persistence.SessionDelays{
+					st.Expire = &vlpersistence.SessionDelays{
 						Since:    string(expire.Get([]byte("since"))),
 						ExpireIn: string(expire.Get([]byte("expireIn"))),
 						Will:     expire.Get([]byte("will")),
@@ -225,11 +224,11 @@ func (s *sessions) LoadForEach(loader persistence.SessionLoader, context interfa
 	})
 }
 
-func (s *sessions) Create(id []byte, state *persistence.SessionBase) error {
+func (s *sessions) Create(id []byte, state *vlpersistence.SessionBase) error {
 	return s.db.Update(func(tx *bbolt.Tx) error {
 		sessions := tx.Bucket(bucketSessions)
 		if sessions == nil {
-			return persistence.ErrNotInitialized
+			return vlpersistence.ErrNotInitialized
 		}
 
 		session, err := getSession(id, sessions)
@@ -258,12 +257,12 @@ func (s *sessions) Delete(id []byte) error {
 	return s.db.Update(func(tx *bbolt.Tx) error {
 		sessions := tx.Bucket(bucketSessions)
 		if sessions == nil {
-			return persistence.ErrNotInitialized
+			return vlpersistence.ErrNotInitialized
 		}
 
 		session := sessions.Bucket(id)
 		if session == nil {
-			return persistence.ErrNotFound
+			return vlpersistence.ErrNotFound
 		}
 
 		if err := sessions.DeleteBucket(id); err != nil {
@@ -287,15 +286,15 @@ func (s *sessions) Delete(id []byte) error {
 	})
 }
 
-func (s *sessions) StateStore(id []byte, state *persistence.SessionState) error {
+func (s *sessions) StateStore(id []byte, state *vlpersistence.SessionState) error {
 	if state.Expire != nil && len(state.Expire.ExpireIn) == 0 {
-		return persistence.ErrInvalidArgs
+		return vlpersistence.ErrInvalidArgs
 	}
 
 	return s.db.Update(func(tx *bbolt.Tx) error {
 		sessions := tx.Bucket(bucketSessions)
 		if sessions == nil {
-			return persistence.ErrNotInitialized
+			return vlpersistence.ErrNotInitialized
 		}
 
 		session, err := getSession(id, sessions)
@@ -322,15 +321,15 @@ func (s *sessions) StateStore(id []byte, state *persistence.SessionState) error 
 	})
 }
 
-func (s *sessions) ExpiryStore(id []byte, exp *persistence.SessionDelays) error {
+func (s *sessions) ExpiryStore(id []byte, exp *vlpersistence.SessionDelays) error {
 	if exp == nil || len(exp.ExpireIn) == 0 {
-		return persistence.ErrInvalidArgs
+		return vlpersistence.ErrInvalidArgs
 	}
 
 	return s.db.Update(func(tx *bbolt.Tx) error {
 		sessions := tx.Bucket(bucketSessions)
 		if sessions == nil {
-			return persistence.ErrNotInitialized
+			return vlpersistence.ErrNotInitialized
 		}
 
 		session, err := getSession(id, sessions)
@@ -376,7 +375,7 @@ func (s *sessions) StateDelete(id []byte) error {
 	return s.db.Update(func(tx *bbolt.Tx) error {
 		sessions := tx.Bucket(bucketSessions)
 		if sessions == nil {
-			return persistence.ErrNotInitialized
+			return vlpersistence.ErrNotInitialized
 		}
 
 		session, err := getSession(id, sessions)
@@ -392,7 +391,7 @@ func (s *sessions) StateDelete(id []byte) error {
 	})
 }
 
-func expiryPut(state *bbolt.Bucket, exp *persistence.SessionDelays) error {
+func expiryPut(state *bbolt.Bucket, exp *vlpersistence.SessionDelays) error {
 	expire, err := state.CreateBucketIfNotExists(bucketExpire)
 	if err != nil {
 		return err
@@ -415,11 +414,11 @@ func expiryPut(state *bbolt.Bucket, exp *persistence.SessionDelays) error {
 	return nil
 }
 
-func (s *sessions) packetsForEach(id []byte, ctx interface{}, load persistence.PacketLoader, bucket []byte) error {
+func (s *sessions) packetsForEach(id []byte, ctx interface{}, load vlpersistence.PacketLoader, bucket []byte) error {
 	return s.db.Update(func(tx *bbolt.Tx) error {
 		root := tx.Bucket(bucketSessions)
 		if root == nil {
-			return persistence.ErrNotInitialized
+			return vlpersistence.ErrNotInitialized
 		}
 
 		session := root.Bucket(id)
@@ -439,12 +438,12 @@ func (s *sessions) packetsForEach(id []byte, ctx interface{}, load persistence.P
 
 		return packets.ForEach(func(k, v []byte) error {
 			if packet := packets.Bucket(k); packet != nil {
-				pPkt := &persistence.PersistedPacket{}
+				pPkt := &vlpersistence.PersistedPacket{}
 
 				if data := packet.Get([]byte("data")); len(data) > 0 {
 					pPkt.Data = data
 				} else {
-					return persistence.ErrBrokenEntry
+					return vlpersistence.ErrBrokenEntry
 				}
 
 				if data := packet.Get([]byte("expireAt")); len(data) > 0 {
@@ -473,7 +472,7 @@ func (s *sessions) packetCount(id []byte, bucket []byte) (uint64, error) {
 	err := s.db.View(func(tx *bbolt.Tx) error {
 		root := tx.Bucket(bucketSessions)
 		if root == nil {
-			return persistence.ErrNotInitialized
+			return vlpersistence.ErrNotInitialized
 		}
 
 		session := root.Bucket(id)
@@ -499,7 +498,7 @@ func (s *sessions) packetCount(id []byte, bucket []byte) (uint64, error) {
 	return count, err
 }
 
-func (s *sessions) packetsStore(tx *bbolt.Tx, id []byte, bucket []byte, packets []*persistence.PersistedPacket) error {
+func (s *sessions) packetsStore(tx *bbolt.Tx, id []byte, bucket []byte, packets []*vlpersistence.PersistedPacket) error {
 	buck, err := createPacketsBucket(tx, id, bucket)
 	if err != nil {
 		return err
@@ -561,7 +560,7 @@ func createPacketsBucket(tx *bbolt.Tx, id []byte, bucket []byte) (*bbolt.Bucket,
 	return packetsRoot.CreateBucketIfNotExists(bucket)
 }
 
-func storePacket(buck *bbolt.Bucket, packet *persistence.PersistedPacket) error {
+func storePacket(buck *bbolt.Bucket, packet *vlpersistence.PersistedPacket) error {
 	id, err := buck.NextSequence()
 	if err != nil {
 		return nil

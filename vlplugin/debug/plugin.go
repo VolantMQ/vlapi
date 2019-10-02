@@ -2,13 +2,15 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"net/http/pprof"
+	"reflect"
 	"runtime"
 	"strings"
 
 	"gopkg.in/yaml.v3"
 
-	vlplugin "github.com/VolantMQ/vlapi/plugin"
+	"github.com/VolantMQ/vlapi/vlplugin"
 )
 
 type pl struct {
@@ -53,16 +55,29 @@ func (pl *pl) Load(c interface{}, params *vlplugin.SysParams) (pla interface{}, 
 		SysParams: params,
 	}
 
-	switch c.(type) {
-	case map[interface{}]interface{}:
+	decodeIface := func() error {
 		var data []byte
-		if data, err = yaml.Marshal(c); err != nil {
-			err = errors.New(Plugin.T + "." + Plugin.N + ": " + err.Error())
-			return
+		var e error
+		if data, e = yaml.Marshal(c); e != nil {
+			e = errors.New(Plugin.T + "." + Plugin.N + ": " + e.Error())
+			return e
 		}
 
-		if err = yaml.Unmarshal(data, &p.cfg); err != nil {
-			err = errors.New(Plugin.T + "." + Plugin.N + ": " + err.Error())
+		if e = yaml.Unmarshal(data, &p.cfg); e != nil {
+			e = errors.New(Plugin.T + "." + Plugin.N + ": " + e.Error())
+			return e
+		}
+
+		return e
+	}
+
+	switch c.(type) {
+	case map[string]interface{}:
+		if err = decodeIface(); err != nil {
+			return
+		}
+	case map[interface{}]interface{}:
+		if err = decodeIface(); err != nil {
 			return
 		}
 	case []byte:
@@ -71,7 +86,7 @@ func (pl *pl) Load(c interface{}, params *vlplugin.SysParams) (pla interface{}, 
 			return
 		}
 	default:
-		err = errors.New(Plugin.T + "." + Plugin.N + ": invalid config")
+		err = fmt.Errorf("%s.%s: invalid config type %s", Plugin.T, Plugin.N, reflect.TypeOf(c).String())
 		return
 	}
 

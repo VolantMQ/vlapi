@@ -9,8 +9,8 @@ import (
 	"github.com/blang/semver"
 	"github.com/coreos/bbolt"
 
-	vlplugin "github.com/VolantMQ/vlapi/plugin"
-	"github.com/VolantMQ/vlapi/plugin/persistence"
+	"github.com/VolantMQ/vlapi/vlplugin"
+	"github.com/VolantMQ/vlapi/vlplugin/vlpersistence"
 )
 
 var (
@@ -49,21 +49,21 @@ type impl struct {
 }
 
 // nolint: golint
-func Load(c interface{}, params *vlplugin.SysParams) (persistence.IFace, error) {
+func Load(c interface{}, params *vlplugin.SysParams) (vlpersistence.IFace, error) {
 	config, ok := c.(*Config)
 	if !ok {
-		cfg, kk := c.(map[interface{}]interface{})
+		cfg, kk := c.(map[string]interface{})
 		if !kk {
-			return nil, persistence.ErrInvalidConfig
+			return nil, vlpersistence.ErrInvalidConfig
 		}
 
 		var fileName interface{}
 		if fileName, ok = cfg["file"]; !ok {
-			return nil, persistence.ErrInvalidConfig
+			return nil, vlpersistence.ErrInvalidConfig
 		}
 
 		if _, ok = fileName.(string); !ok {
-			return nil, persistence.ErrInvalidConfig
+			return nil, vlpersistence.ErrInvalidConfig
 		}
 
 		config = &Config{
@@ -165,10 +165,10 @@ func Load(c interface{}, params *vlplugin.SysParams) (persistence.IFace, error) 
 	return persist, nil
 }
 
-func (p *impl) System() (persistence.System, error) {
+func (p *impl) System() (vlpersistence.System, error) {
 	select {
 	case <-p.done:
-		return nil, persistence.ErrNotOpen
+		return nil, vlpersistence.ErrNotOpen
 	default:
 	}
 
@@ -176,10 +176,10 @@ func (p *impl) System() (persistence.System, error) {
 }
 
 // Sessions
-func (p *impl) Sessions() (persistence.Sessions, error) {
+func (p *impl) Sessions() (vlpersistence.Sessions, error) {
 	select {
 	case <-p.done:
-		return nil, persistence.ErrNotOpen
+		return nil, vlpersistence.ErrNotOpen
 	default:
 	}
 
@@ -187,10 +187,10 @@ func (p *impl) Sessions() (persistence.Sessions, error) {
 }
 
 // Retained
-func (p *impl) Retained() (persistence.Retained, error) {
+func (p *impl) Retained() (vlpersistence.Retained, error) {
 	select {
 	case <-p.done:
-		return nil, persistence.ErrNotOpen
+		return nil, vlpersistence.ErrNotOpen
 	default:
 	}
 
@@ -201,7 +201,7 @@ func (p *impl) Retained() (persistence.Retained, error) {
 func (p *impl) Shutdown() error {
 	select {
 	case <-p.done:
-		return persistence.ErrNotOpen
+		return vlpersistence.ErrNotOpen
 	default:
 		close(p.done)
 	}

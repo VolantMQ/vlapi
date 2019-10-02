@@ -7,7 +7,7 @@ import (
 	"github.com/troian/healthcheck"
 	"go.uber.org/zap"
 
-	vlsubscriber "github.com/VolantMQ/vlapi/subscriber"
+	"github.com/VolantMQ/vlapi/vlsubscriber"
 )
 
 // APIVersion version of current API

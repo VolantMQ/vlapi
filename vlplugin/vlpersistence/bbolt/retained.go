@@ -3,21 +3,21 @@ package persistenceBbolt
 import (
 	"github.com/coreos/bbolt"
 
-	"github.com/VolantMQ/vlapi/plugin/persistence"
+	"github.com/VolantMQ/vlapi/vlplugin/vlpersistence"
 )
 
 type retained struct {
 	*dbStatus
 }
 
-func (r *retained) Load() ([]*persistence.PersistedPacket, error) {
-	var res []*persistence.PersistedPacket
+func (r *retained) Load() ([]*vlpersistence.PersistedPacket, error) {
+	var res []*vlpersistence.PersistedPacket
 
 	err := r.db.View(func(tx *bbolt.Tx) error {
 		bucket := tx.Bucket(bucketRetained)
 
 		return bucket.ForEach(func(k, v []byte) error {
-			pkt := &persistence.PersistedPacket{}
+			pkt := &vlpersistence.PersistedPacket{}
 
 			if buck := bucket.Bucket(k); buck != nil {
 				pkt.Data = buck.Get([]byte("data"))
@@ -34,7 +34,7 @@ func (r *retained) Load() ([]*persistence.PersistedPacket, error) {
 }
 
 // Store retained packets
-func (r *retained) Store(packets []*persistence.PersistedPacket) error {
+func (r *retained) Store(packets []*vlpersistence.PersistedPacket) error {
 	return r.db.Update(func(tx *bbolt.Tx) error {
 		if err := tx.DeleteBucket(bucketRetained); err != nil && err != bbolt.ErrBucketNotFound {
 			return err

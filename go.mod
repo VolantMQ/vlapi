@@ -9,8 +9,8 @@ require (
 	github.com/troian/healthcheck v0.1.1
 	go.etcd.io/bbolt v1.3.3 // indirect
 	go.uber.org/atomic v1.4.0 // indirect
-	go.uber.org/multierr v1.1.0 // indirect
-	go.uber.org/zap v1.9.1
+	go.uber.org/multierr v1.2.0 // indirect
+	go.uber.org/zap v1.10.0
 	golang.org/x/sys v0.0.0-20190922100055-0a153f010e69 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20190905181640-827449938966
 )

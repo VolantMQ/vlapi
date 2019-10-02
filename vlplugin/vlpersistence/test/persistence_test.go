@@ -7,15 +7,15 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	persistenceMem "github.com/VolantMQ/vlapi/plugin/persistence/mem"
+	persistenceMem "github.com/VolantMQ/vlapi/vlplugin/persistence/mem"
+	"github.com/VolantMQ/vlapi/vlplugin/vlpersistence"
 
-	"github.com/VolantMQ/vlapi/plugin/persistence"
-	_ "github.com/VolantMQ/vlapi/plugin/persistence/bbolt"
-	_ "github.com/VolantMQ/vlapi/plugin/persistence/mem"
+	_ "github.com/VolantMQ/vlapi/vlplugin/persistence/bbolt"
+	_ "github.com/VolantMQ/vlapi/vlplugin/persistence/mem"
 )
 
-var curr persistence.IFace
-var backends []persistence.IFace
+var curr vlpersistence.IFace
+var backends []vlpersistence.IFace
 
 func init() {
 	pl, _ := persistenceMem.Load(nil, nil)
@@ -53,7 +53,7 @@ func TestSessionDeleteNonExistingSession(t *testing.T) {
 	require.NotNil(t, sessions)
 
 	err = sessions.Delete([]byte("session"))
-	require.EqualError(t, err, persistence.ErrNotFound.Error())
+	require.EqualError(t, err, vlpersistence.ErrNotFound.Error())
 }
 
 func TestSessionCreateDelete(t *testing.T) {
@@ -61,7 +61,7 @@ func TestSessionCreateDelete(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, sessions)
 
-	err = sessions.Create([]byte("session"), &persistence.SessionBase{
+	err = sessions.Create([]byte("session"), &vlpersistence.SessionBase{
 		Version:   1,
 		Timestamp: time.Now().Format(time.RFC3339),
 	})
@@ -86,7 +86,7 @@ func TestSessionCreateDelete(t *testing.T) {
 	require.NoError(t, err)
 
 	err = sessions.Delete([]byte("session"))
-	require.EqualError(t, err, persistence.ErrNotFound.Error())
+	require.EqualError(t, err, vlpersistence.ErrNotFound.Error())
 }
 
 func TestSessionCreateDuplicate(t *testing.T) {
@@ -94,18 +94,18 @@ func TestSessionCreateDuplicate(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, sessions)
 
-	err = sessions.Create([]byte("session"), &persistence.SessionBase{
+	err = sessions.Create([]byte("session"), &vlpersistence.SessionBase{
 		Version:   1,
 		Timestamp: time.Now().Format(time.RFC3339),
 	})
 	require.NoError(t, err)
 
-	err = sessions.Create([]byte("session"), &persistence.SessionBase{
+	err = sessions.Create([]byte("session"), &vlpersistence.SessionBase{
 		Version:   1,
 		Timestamp: time.Now().Format(time.RFC3339),
 	})
 
-	require.EqualError(t, err, persistence.ErrAlreadyExists.Error())
+	require.EqualError(t, err, vlpersistence.ErrAlreadyExists.Error())
 
 	err = sessions.Delete([]byte("session"))
 	require.NoError(t, err)
@@ -116,7 +116,7 @@ func TestSessionCreate(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, sessions)
 
-	err = sessions.Create([]byte("session"), &persistence.SessionBase{
+	err = sessions.Create([]byte("session"), &vlpersistence.SessionBase{
 		Version:   1,
 		Timestamp: time.Now().Format(time.RFC3339),
 	})
@@ -135,7 +135,7 @@ func TestRetainedEmpty(t *testing.T) {
 }
 
 func TestRetained(t *testing.T) {
-	packets := []*persistence.PersistedPacket{
+	packets := []*vlpersistence.PersistedPacket{
 		{ExpireAt: time.Now().Format(time.RFC3339), Data: []byte{1, 2, 3, 4, 5}},
 		{ExpireAt: time.Now().Format(time.RFC3339), Data: []byte{1, 2, 3, 4, 5}},
 		{ExpireAt: time.Now().Format(time.RFC3339), Data: []byte{1, 2, 3, 4, 5}},

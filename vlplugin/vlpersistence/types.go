@@ -1,4 +1,4 @@
-package persistence
+package vlpersistence
 
 // Errors persistence errors
 type Errors int

@@ -3,7 +3,7 @@ package persistenceMem
 import (
 	"sync"
 
-	"github.com/VolantMQ/vlapi/plugin/persistence"
+	"github.com/VolantMQ/vlapi/vlplugin/vlpersistence"
 )
 
 type sessions struct {
@@ -13,11 +13,11 @@ type sessions struct {
 }
 
 type session struct {
-	state *persistence.SessionState
-	persistence.PersistedPackets
+	state *vlpersistence.SessionState
+	vlpersistence.PersistedPackets
 }
 
-var _ persistence.Sessions = (*sessions)(nil)
+var _ vlpersistence.Sessions = (*sessions)(nil)
 
 func (s *sessions) Exists(id []byte) bool {
 	s.lock.RLock()
@@ -45,7 +45,7 @@ func (s *sessions) SubscriptionsStore(id []byte, data []byte) error {
 	}
 
 	if ses.state == nil {
-		ses.state = &persistence.SessionState{}
+		ses.state = &vlpersistence.SessionState{}
 	}
 
 	ses.state.Subscriptions = data
@@ -65,7 +65,7 @@ func (s *sessions) SubscriptionsDelete(id []byte) error {
 	return nil
 }
 
-func (s *sessions) PacketsForEachQoS0(id []byte, ctx interface{}, load persistence.PacketLoader) error {
+func (s *sessions) PacketsForEachQoS0(id []byte, ctx interface{}, load vlpersistence.PacketLoader) error {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
@@ -86,7 +86,7 @@ func (s *sessions) PacketsForEachQoS0(id []byte, ctx interface{}, load persisten
 	return nil
 }
 
-func (s *sessions) PacketsForEachQoS12(id []byte, ctx interface{}, load persistence.PacketLoader) error {
+func (s *sessions) PacketsForEachQoS12(id []byte, ctx interface{}, load vlpersistence.PacketLoader) error {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
@@ -107,7 +107,7 @@ func (s *sessions) PacketsForEachQoS12(id []byte, ctx interface{}, load persiste
 	return nil
 }
 
-func (s *sessions) PacketsForEachUnAck(id []byte, ctx interface{}, load persistence.PacketLoader) error {
+func (s *sessions) PacketsForEachUnAck(id []byte, ctx interface{}, load vlpersistence.PacketLoader) error {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
@@ -136,7 +136,7 @@ func (s *sessions) PacketCountQoS0(id []byte) (uint64, error) {
 		return uint64(len(ses.QoS0)), nil
 	}
 
-	return 0, persistence.ErrNotFound
+	return 0, vlpersistence.ErrNotFound
 }
 
 func (s *sessions) PacketCountQoS12(id []byte) (uint64, error) {
@@ -147,7 +147,7 @@ func (s *sessions) PacketCountQoS12(id []byte) (uint64, error) {
 		return uint64(len(ses.QoS12)), nil
 	}
 
-	return 0, persistence.ErrNotFound
+	return 0, vlpersistence.ErrNotFound
 }
 
 func (s *sessions) PacketCountUnAck(id []byte) (uint64, error) {
@@ -158,10 +158,10 @@ func (s *sessions) PacketCountUnAck(id []byte) (uint64, error) {
 		return uint64(len(ses.UnAck)), nil
 	}
 
-	return 0, persistence.ErrNotFound
+	return 0, vlpersistence.ErrNotFound
 }
 
-func (s *sessions) PacketsStore(id []byte, packets persistence.PersistedPackets) error {
+func (s *sessions) PacketsStore(id []byte, packets vlpersistence.PersistedPackets) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -173,7 +173,7 @@ func (s *sessions) PacketsStore(id []byte, packets persistence.PersistedPackets)
 		return nil
 	}
 
-	return persistence.ErrNotFound
+	return vlpersistence.ErrNotFound
 }
 
 func (s *sessions) PacketsDelete(id []byte) error {
@@ -181,17 +181,17 @@ func (s *sessions) PacketsDelete(id []byte) error {
 	defer s.lock.Unlock()
 
 	if ses, loaded := s.entries[string(id)]; loaded {
-		ses.QoS0 = []*persistence.PersistedPacket{}
-		ses.QoS12 = []*persistence.PersistedPacket{}
-		ses.UnAck = []*persistence.PersistedPacket{}
+		ses.QoS0 = []*vlpersistence.PersistedPacket{}
+		ses.QoS12 = []*vlpersistence.PersistedPacket{}
+		ses.UnAck = []*vlpersistence.PersistedPacket{}
 
 		return nil
 	}
 
-	return persistence.ErrNotFound
+	return vlpersistence.ErrNotFound
 }
 
-func (s *sessions) PacketStoreQoS0(id []byte, pkt *persistence.PersistedPacket) error {
+func (s *sessions) PacketStoreQoS0(id []byte, pkt *vlpersistence.PersistedPacket) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -200,10 +200,10 @@ func (s *sessions) PacketStoreQoS0(id []byte, pkt *persistence.PersistedPacket) 
 		return nil
 	}
 
-	return persistence.ErrNotFound
+	return vlpersistence.ErrNotFound
 }
 
-func (s *sessions) PacketStoreQoS12(id []byte, pkt *persistence.PersistedPacket) error {
+func (s *sessions) PacketStoreQoS12(id []byte, pkt *vlpersistence.PersistedPacket) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -212,10 +212,10 @@ func (s *sessions) PacketStoreQoS12(id []byte, pkt *persistence.PersistedPacket)
 		return nil
 	}
 
-	return persistence.ErrNotFound
+	return vlpersistence.ErrNotFound
 }
 
-func (s *sessions) PacketStoreUnAck(id []byte, pkt *persistence.PersistedPacket) error {
+func (s *sessions) PacketStoreUnAck(id []byte, pkt *vlpersistence.PersistedPacket) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -224,10 +224,10 @@ func (s *sessions) PacketStoreUnAck(id []byte, pkt *persistence.PersistedPacket)
 		return nil
 	}
 
-	return persistence.ErrNotFound
+	return vlpersistence.ErrNotFound
 }
 
-func (s *sessions) LoadForEach(loader persistence.SessionLoader, context interface{}) error {
+func (s *sessions) LoadForEach(loader vlpersistence.SessionLoader, context interface{}) error {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
@@ -242,7 +242,7 @@ func (s *sessions) LoadForEach(loader persistence.SessionLoader, context interfa
 	return err
 }
 
-func (s *sessions) Create(id []byte, state *persistence.SessionBase) error {
+func (s *sessions) Create(id []byte, state *vlpersistence.SessionBase) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -251,10 +251,10 @@ func (s *sessions) Create(id []byte, state *persistence.SessionBase) error {
 		return nil
 	}
 
-	return persistence.ErrAlreadyExists
+	return vlpersistence.ErrAlreadyExists
 }
 
-func (s *sessions) StateStore(id []byte, state *persistence.SessionState) error {
+func (s *sessions) StateStore(id []byte, state *vlpersistence.SessionState) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -269,23 +269,23 @@ func (s *sessions) StateStore(id []byte, state *persistence.SessionState) error 
 		return nil
 	}
 
-	return persistence.ErrNotFound
+	return vlpersistence.ErrNotFound
 }
 
-func (s *sessions) ExpiryStore(id []byte, exp *persistence.SessionDelays) error {
+func (s *sessions) ExpiryStore(id []byte, exp *vlpersistence.SessionDelays) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
 	if ses, loaded := s.entries[string(id)]; loaded {
 		if ses.state == nil {
-			ses.state = &persistence.SessionState{}
+			ses.state = &vlpersistence.SessionState{}
 		}
 		ses.state.Expire = exp
 
 		return nil
 	}
 
-	return persistence.ErrNotFound
+	return vlpersistence.ErrNotFound
 }
 
 func (s *sessions) ExpiryDelete(id []byte) error {
@@ -298,7 +298,7 @@ func (s *sessions) ExpiryDelete(id []byte) error {
 		return nil
 	}
 
-	return persistence.ErrNotFound
+	return vlpersistence.ErrNotFound
 }
 
 func (s *sessions) StateDelete(id []byte) error {
@@ -311,7 +311,7 @@ func (s *sessions) StateDelete(id []byte) error {
 		return nil
 	}
 
-	return persistence.ErrNotFound
+	return vlpersistence.ErrNotFound
 }
 
 func (s *sessions) Delete(id []byte) error {
@@ -324,5 +324,5 @@ func (s *sessions) Delete(id []byte) error {
 		return nil
 	}
 
-	return persistence.ErrNotFound
+	return vlpersistence.ErrNotFound
 }
