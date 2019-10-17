@@ -17,13 +17,13 @@ install:
   - go mod tidy
 script:
   - golangci-lint run
-  - go build -race -gcflags "-N -l" ./plugin/persistence
-  - go build -race -gcflags "-N -l" ./plugin/auth
-  - go build -race -gcflags "-N -l" ./subscriber
+  - go build -race -gcflags "-N -l" ./vlplugin/vlpersistence
+  - go build -race -gcflags "-N -l" ./vlplugin/vlauth
+  - go build -race -gcflags "-N -l" ./vlsubscriber
   - go build -race -gcflags "-N -l" ./mqttp
-  - go build -race -gcflags "-N -l" -buildmode=plugin ./plugin/debug
-  - go build -race -gcflags "-N -l" -buildmode=plugin ./plugin/health
-  - go build -race -gcflags "-N -l" -buildmode=plugin ./plugin/persistence/bbolt/plugin
+  - go build -race -gcflags "-N -l" -buildmode=plugin ./vlplugin/debug
+  - go build -race -gcflags "-N -l" -buildmode=plugin ./vlplugin/health
+  - go build -race -gcflags "-N -l" -buildmode=plugin ./vlplugin/vlpersistence/bbolt/plugin
   - go test -race -coverprofile=coverage.txt -covermode=atomic -v $(go list ./... | grep -v /vendor/)
 after_success:
   - bash <(curl -s https://codecov.io/bash)
