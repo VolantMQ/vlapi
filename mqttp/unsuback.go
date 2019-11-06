@@ -115,7 +115,7 @@ func (msg *UnSubAck) size() int {
 	total := 2
 
 	if msg.version == ProtocolV50 {
-		total += int(msg.properties.FullLen())
+		total += msg.properties.FullLen()
 		total += len(msg.returnCodes)
 	}
 

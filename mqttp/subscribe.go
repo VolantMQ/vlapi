@@ -157,7 +157,7 @@ func (msg *Subscribe) encodeMessage(to []byte) (int, error) {
 			return offset, err
 		}
 
-		to[offset] = byte(t.ops.Raw())
+		to[offset] = t.ops.Raw()
 		offset++
 	}
 
@@ -170,7 +170,7 @@ func (msg *Subscribe) size() int {
 
 	// v5.0 [MQTT-3.1.2.11]
 	if msg.version == ProtocolV50 {
-		total += int(msg.properties.FullLen())
+		total += msg.properties.FullLen()
 	}
 
 	for _, t := range msg.topics {

@@ -4,6 +4,10 @@ import (
 	"testing"
 )
 
+func TestPropertyAllowedPacketType(t *testing.T) {
+
+}
+
 func TestPropertyDecodeValid(t *testing.T) {
 
 }

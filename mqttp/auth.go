@@ -79,5 +79,5 @@ func (msg *Auth) encodeMessage(to []byte) (int, error) {
 }
 
 func (msg *Auth) size() int {
-	return 1 + int(msg.properties.FullLen())
+	return 1 + msg.properties.FullLen()
 }

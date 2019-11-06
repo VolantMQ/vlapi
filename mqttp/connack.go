@@ -146,7 +146,7 @@ func (msg *ConnAck) size() int {
 
 	// v5.0 [MQTT-3.1.2.11]
 	if msg.version == ProtocolV50 {
-		total += int(msg.properties.FullLen())
+		total += msg.properties.FullLen()
 	}
 
 	return total
