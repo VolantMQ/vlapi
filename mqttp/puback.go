@@ -142,7 +142,7 @@ func (msg *Ack) size() int {
 		if pLen > 1 || msg.reasonCode != CodeSuccess {
 			total++
 			if pLen > 1 {
-				total += int(pLen)
+				total += pLen
 			}
 		}
 	}

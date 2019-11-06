@@ -138,7 +138,6 @@ type property struct {
 	len        int
 }
 
-// nolint: golint
 const (
 	PropertyPayloadFormat                   = PropertyID(0x01)
 	PropertyPublicationExpiry               = PropertyID(0x02)
@@ -169,7 +168,6 @@ const (
 	PropertySharedSubscriptionAvailable     = PropertyID(0x2A)
 )
 
-// nolint: golint
 const (
 	PropertyTypeByte = iota
 	PropertyTypeShort
@@ -180,32 +178,25 @@ const (
 	PropertyTypeBinary
 )
 
+// propertyAllowedMessageTypes properties and their supported packets type.
+// bool flag indicates either duplicate allowed or not
 var propertyAllowedMessageTypes = map[PropertyID]map[Type]bool{
-	PropertyPayloadFormat:                   {PUBLISH: false},
-	PropertyPublicationExpiry:               {PUBLISH: false},
-	PropertyContentType:                     {PUBLISH: false},
-	PropertyResponseTopic:                   {PUBLISH: false},
-	PropertyCorrelationData:                 {PUBLISH: false},
-	PropertySubscriptionIdentifier:          {PUBLISH: true, SUBSCRIBE: false},
-	PropertySessionExpiryInterval:           {CONNECT: false, CONNACK: false, DISCONNECT: false},
-	PropertyAssignedClientIdentifier:        {CONNACK: false},
-	PropertyServerKeepAlive:                 {CONNACK: false},
-	PropertyAuthMethod:                      {CONNECT: false, CONNACK: false, AUTH: false},
-	PropertyAuthData:                        {CONNECT: false, CONNACK: false, AUTH: false},
-	PropertyWillDelayInterval:               {CONNECT: false},
-	PropertyRequestProblemInfo:              {CONNECT: false},
-	PropertyRequestResponseInfo:             {CONNECT: false},
-	PropertyResponseInfo:                    {CONNACK: false},
-	PropertyServerReverence:                 {CONNACK: false, DISCONNECT: false},
-	PropertyReceiveMaximum:                  {CONNECT: false, CONNACK: false},
-	PropertyTopicAliasMaximum:               {CONNECT: false, CONNACK: false},
-	PropertyTopicAlias:                      {PUBLISH: false},
-	PropertyMaximumQoS:                      {CONNACK: false},
-	PropertyRetainAvailable:                 {CONNACK: false},
-	PropertyMaximumPacketSize:               {CONNECT: false, CONNACK: false},
-	PropertyWildcardSubscriptionAvailable:   {CONNACK: false},
-	PropertySubscriptionIdentifierAvailable: {CONNACK: false},
-	PropertySharedSubscriptionAvailable:     {CONNACK: false},
+	PropertyPayloadFormat:            {PUBLISH: false},
+	PropertyPublicationExpiry:        {PUBLISH: false},
+	PropertyContentType:              {PUBLISH: false},
+	PropertyResponseTopic:            {PUBLISH: false},
+	PropertyCorrelationData:          {PUBLISH: false},
+	PropertySubscriptionIdentifier:   {PUBLISH: true, SUBSCRIBE: false},
+	PropertySessionExpiryInterval:    {CONNECT: false, CONNACK: false, DISCONNECT: false},
+	PropertyAssignedClientIdentifier: {CONNACK: false},
+	PropertyServerKeepAlive:          {CONNACK: false},
+	PropertyAuthMethod:               {CONNECT: false, CONNACK: false, AUTH: false},
+	PropertyAuthData:                 {CONNECT: false, CONNACK: false, AUTH: false},
+	PropertyRequestProblemInfo:       {CONNECT: false},
+	PropertyWillDelayInterval:        {PUBLISH: false}, // it is only for Will message
+	PropertyRequestResponseInfo:      {CONNECT: false},
+	PropertyResponseInfo:             {CONNACK: false},
+	PropertyServerReverence:          {CONNACK: false, DISCONNECT: false},
 	PropertyReasonString: {
 		CONNACK:    false,
 		PUBACK:     false,
@@ -216,6 +207,11 @@ var propertyAllowedMessageTypes = map[PropertyID]map[Type]bool{
 		UNSUBACK:   false,
 		DISCONNECT: false,
 		AUTH:       false},
+	PropertyReceiveMaximum:    {CONNECT: false, CONNACK: false},
+	PropertyTopicAliasMaximum: {CONNECT: false, CONNACK: false},
+	PropertyTopicAlias:        {PUBLISH: false},
+	PropertyMaximumQoS:        {CONNACK: false},
+	PropertyRetainAvailable:   {CONNACK: false},
 	PropertyUserProperty: {
 		CONNECT:     true,
 		CONNACK:     true,
@@ -230,6 +226,10 @@ var propertyAllowedMessageTypes = map[PropertyID]map[Type]bool{
 		UNSUBACK:    true,
 		DISCONNECT:  true,
 		AUTH:        true},
+	PropertyMaximumPacketSize:               {CONNECT: false, CONNACK: false},
+	PropertyWildcardSubscriptionAvailable:   {CONNACK: false},
+	PropertySubscriptionIdentifierAvailable: {CONNACK: false},
+	PropertySharedSubscriptionAvailable:     {CONNACK: false},
 }
 
 var propertyTypeMap = map[PropertyID]PropertyType{
@@ -434,7 +434,7 @@ func (p *property) decode(t Type, from []byte) (int, error) {
 
 func (p *property) encode(to []byte) (int, error) {
 	pLen := p.FullLen()
-	if int(pLen) > len(to) {
+	if pLen > len(to) {
 		return 0, ErrInsufficientBufferSize
 	}
 

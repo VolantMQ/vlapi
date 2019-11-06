@@ -311,6 +311,11 @@ func (msg *Publish) decodeMessage(from []byte) (int, error) {
 			return offset, err
 		}
 
+		// [MQTT-2.2.2.2] PropertyWillDelayInterval allowed only for Will
+		if _, ok := msg.properties.properties[PropertyWillDelayInterval]; ok {
+			return offset, CodeProtocolError
+		}
+
 		// if packet does not have topic set there must be topic alias set in properties
 		if len(msg.topic) == 0 {
 			reject := CodeProtocolError
@@ -418,7 +423,7 @@ func (msg *Publish) size() int {
 
 	// v5.0 [MQTT-3.1.2.11]
 	if msg.version == ProtocolV50 {
-		total += int(msg.properties.FullLen())
+		total += msg.properties.FullLen()
 	}
 
 	return total

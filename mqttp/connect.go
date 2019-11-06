@@ -129,17 +129,12 @@ func (msg *Connect) Will() *Publish {
 
 // SetWill state of message
 func (msg *Connect) SetWill(m *Publish) error {
-	will := true
 	if m == nil || len(m.topic) == 0 || len(m.payload) == 0 || !m.QoS().IsValid() {
-		will = false
+		return ErrInvalidArgs
 	}
 
 	// Reset all will flags
 	msg.ResetWill()
-
-	if !will {
-		return ErrInvalidArgs
-	}
 
 	if m.Retain() {
 		msg.connectFlags |= maskConnFlagWillRetain
@@ -148,6 +143,7 @@ func (msg *Connect) SetWill(m *Publish) error {
 	msg.connectFlags |= byte(m.QoS()) << offsetConnFlagWillQoS
 	msg.connectFlags |= maskConnFlagWill
 	msg.will = m
+
 	return nil
 }
 
@@ -452,10 +448,20 @@ func (msg *Connect) decodeMessage(from []byte) (int, error) {
 
 		// V5.0   [MQTT-3.1.3.2] Will Properties
 		if msg.version >= ProtocolV50 {
-			n, err = msg.will.properties.decode(msg.Type(), from[offset:])
+			n, err = msg.will.properties.decode(msg.will.Type(), from[offset:])
 			offset += n
 			if err != nil {
 				return offset, err
+			}
+
+			// // [MQTT-2.2.2.2] PropertySubscriptionIdentifier not allowed for Will
+			if _, ok := msg.will.properties.properties[PropertySubscriptionIdentifier]; ok {
+				return offset, CodeProtocolError
+			}
+
+			// // [MQTT-2.2.2.2] PropertyTopicAlias not allowed for Will
+			if _, ok := msg.will.properties.properties[PropertyTopicAlias]; ok {
+				return offset, CodeProtocolError
 			}
 		}
 
@@ -526,7 +532,7 @@ func (msg *Connect) size() int {
 
 	// v5.0 [MQTT-3.1.2.11]
 	if msg.version >= ProtocolV50 {
-		total += int(msg.properties.FullLen())
+		total += msg.properties.FullLen()
 	}
 
 	//       the length prefix

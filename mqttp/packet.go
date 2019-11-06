@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	//maxFixedHeaderLength int    = 5
+	// maxFixedHeaderLength int    = 5
 	maxRemainingLength int32 = (256 * 1024 * 1024) - 1 // 256 MB
 )
 const (
@@ -25,7 +25,7 @@ const (
 	// RetainHandlingIfNotExists publish retained messages on subscribe only when it's new subscription to given topic
 	RetainHandlingIfNotExists
 	// RetainHandlingDoNotRetain do not publish retained messages on subscribe
-	RetainHandlingDoNotRetain
+	// RetainHandlingDoNotRetain
 )
 
 // SubscriptionOptions as per [MQTT-3.8.3.1]
