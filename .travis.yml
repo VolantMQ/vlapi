@@ -21,9 +21,6 @@ script:
   - go build -race -gcflags "-N -l" ./vlplugin/vlauth
   - go build -race -gcflags "-N -l" ./vlsubscriber
   - go build -race -gcflags "-N -l" ./mqttp
-  - go build -race -gcflags "-N -l" -buildmode=plugin ./vlplugin/debug
-  - go build -race -gcflags "-N -l" -buildmode=plugin ./vlplugin/health
-  - go build -race -gcflags "-N -l" -buildmode=plugin ./vlplugin/vlpersistence/bbolt/plugin
   - go test -race -coverprofile=coverage.txt -covermode=atomic -v $(go list ./... | grep -v /vendor/)
 after_success:
   - bash <(curl -s https://codecov.io/bash)
