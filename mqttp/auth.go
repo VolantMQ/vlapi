@@ -60,14 +60,31 @@ func (msg *Auth) SetReasonCode(c ReasonCode) error {
 // decode message
 func (msg *Auth) decodeMessage(from []byte) (int, error) {
 	offset := 0
-	msg.authReason = ReasonCode(from[offset])
 
+	// The Reason Code and Property Length can be omitted if the Reason Code is 0x00 (Success) and there are no Properties.
+	// In this case the AUTH has a Remaining Length of 0.
+	if len(from) == 0 {
+		msg.authReason = CodeSuccess
+		return offset, nil
+	}
+
+	msg.authReason = ReasonCode(from[offset])
 	if !msg.authReason.IsValidForType(msg.mType) {
 		return offset, CodeProtocolError
 	}
 
-	n, err := msg.properties.decode(msg.Type(), from[offset:])
-	return offset + n, err
+	offset++
+
+	if len(from[offset:]) > 0 {
+		n, err := msg.properties.decode(msg.Type(), from[offset:])
+		offset += n
+
+		if err != nil {
+			return offset, err
+		}
+	}
+
+	return offset, nil
 }
 
 func (msg *Auth) encodeMessage(to []byte) (int, error) {
