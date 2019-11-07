@@ -3,10 +3,9 @@
 [![Build Status](https://travis-ci.org/VolantMQ/vlapi.svg?branch=master)](https://travis-ci.org/VolantMQ/vlapi)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-<aside class="warning">
+## WARNING
 In version v0.4.0 breaking changes has been introduced.
-All plugin implementations moved out from repository to [Gitlab](https://gitlab.com/VolantMQ/vlplugins) 
-</aside>
+All plugin implementations moved out from repository to [Gitlab](https://gitlab.com/VolantMQ/vlplugins)
 
 ## MQTT Packet
 ### Versions
