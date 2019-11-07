@@ -17,8 +17,8 @@ install:
   - go mod tidy
 script:
   - golangci-lint run
-  - go build -race -gcflags "-N -l" ./vlplugin/vlpersistence
-  - go build -race -gcflags "-N -l" ./vlplugin/vlauth
+  - go build -race -gcflags "-N -l" ./vlpersistence
+  - go build -race -gcflags "-N -l" ./vlauth
   - go build -race -gcflags "-N -l" ./vlsubscriber
   - go build -race -gcflags "-N -l" ./mqttp
   - go test -race -coverprofile=coverage.txt -covermode=atomic -v $(go list ./... | grep -v /vendor/)
