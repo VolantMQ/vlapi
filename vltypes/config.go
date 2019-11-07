@@ -9,7 +9,6 @@ var (
 )
 
 // NormalizeConfig make sure config object meets basic requirement to be as map[string]interface{}
-
 func NormalizeConfig(cfg interface{}) (map[string]interface{}, error) {
 	switch r := cfg.(type) {
 	case map[string]interface{}:

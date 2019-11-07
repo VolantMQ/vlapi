@@ -14,6 +14,7 @@
 #### Persistence
 
 ### Implementations
+!!! Note. Plugin implementations moved to [Gitlab](https://gitlab.com/VolantMQ/vlplugins)
 #### Debug
 #### Health
 #### Persistence

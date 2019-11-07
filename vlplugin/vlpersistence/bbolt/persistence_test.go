@@ -1,5 +1,0 @@
-package persistenceBbolt
-
-func init() {
-
-}
