@@ -72,7 +72,7 @@ func NewTopic(topic []byte) (*Topic, error) {
 	}
 
 	if bytes.HasPrefix(topic, dollarPrefix) {
-		if idx := bytes.Index(topic, topicSep); idx == 0 {
+		if idx := bytes.Index(topic, topicSep); idx > 0 {
 			t.dollarPrefix = topic[:idx]
 
 			if bytes.Equal(t.dollarPrefix, sharePrefix) {
@@ -80,7 +80,7 @@ func NewTopic(topic []byte) (*Topic, error) {
 					return nil, CodeProtocolError
 				}
 
-				sIdx := bytes.Index(topic[idx:], topicSep)
+				sIdx := bytes.Index(topic[idx+1:], topicSep) + idx + 1
 				t.shareName = topic[idx+1 : sIdx]
 				t.filter = topic[sIdx+1:]
 			}
