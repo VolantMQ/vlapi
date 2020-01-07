@@ -63,8 +63,8 @@ func TestTopicNewInvalidShared(t *testing.T) {
 
 func TestTopicNewValidShared(t *testing.T) {
 	topic, err := NewTopic([]byte("$share/a/ads"))
-	require.Error(t, err, CodeProtocolError)
-	require.Nil(t, topic)
+	require.NoError(t, err)
+	require.NotNil(t, topic)
 
 }
 func TestTopicNewValid1(t *testing.T) {
