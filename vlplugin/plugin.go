@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/VolantMQ/vlapi/vlsubscriber"
+	"github.com/VolantMQ/vlapi/vltypes"
 )
 
 // APIVersion version of current API
@@ -42,6 +43,7 @@ type Info interface {
 
 // nolint: golint
 type Messaging interface {
+	vltypes.TopicMessenger
 	GetSubscriber(id string) (vlsubscriber.IFace, error)
 }
 
@@ -66,8 +68,10 @@ type SysParams struct {
 	Messaging
 	HTTP
 	Health
-	Log           *zap.SugaredLogger
-	SignalFailure func(name, msg string)
+	Log            *zap.SugaredLogger
+	SignalFailure  func(name, msg string)
+	Version        string
+	BuildTimestamp string
 }
 
 // Plugin entry to plugin

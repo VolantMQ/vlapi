@@ -29,3 +29,14 @@ func NormalizeConfig(cfg interface{}) (map[string]interface{}, error) {
 
 	return nil, ErrInvalidConfigType
 }
+
+// RetainObject general interface of the retain as not only publish message can be retained
+type RetainObject interface {
+	Topic() string
+}
+
+// TopicMessenger interface for session or systree used to publish or retain messages
+type TopicMessenger interface {
+	Publish(interface{}) error
+	Retain(RetainObject) error
+}
