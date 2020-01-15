@@ -107,8 +107,9 @@ func (msg *Subscribe) decodeMessage(from []byte) (int, error) {
 		subsOptions := SubscriptionOptions(from[offset])
 		offset++
 
-		if msg.version == ProtocolV50 && (subsOptions.Raw()&maskSubscriptionReserved) != 0 {
-			return offset, CodeProtocolError
+		if (msg.version == ProtocolV50 && (subsOptions.Raw()&maskSubscriptionReservedV5) != 0) ||
+			(msg.version < ProtocolV50 && (subsOptions.Raw()&maskSubscriptionReservedV3) != 0) {
+			return offset, CodeMalformedPacket
 		}
 
 		var topic *Topic

@@ -107,7 +107,7 @@ func TestPingReqDecodeEncodeEquiv(t *testing.T) {
 	require.Equal(t, len(buf), n2, "Error decoding message.")
 	require.Equal(t, buf, dst[:n2], "Error decoding message.")
 
-	_, n3, err := Decode(ProtocolV311, dst)
+	_, n3, err := Decode(ProtocolV311, dst[:n2])
 
 	require.NoError(t, err, "Error decoding message.")
 	require.Equal(t, len(buf), n3, "Error decoding message.")
@@ -133,7 +133,7 @@ func TestPingRespDecodeEncodeEquiv(t *testing.T) {
 	require.Equal(t, len(buf), n2, "Error decoding message.")
 	require.Equal(t, buf, dst[:n2], "Error decoding message.")
 
-	_, n3, err := Decode(ProtocolV311, dst)
+	_, n3, err := Decode(ProtocolV311, dst[:n2])
 
 	require.NoError(t, err, "Error decoding message.")
 	require.Equal(t, len(buf), n3, "Error decoding message.")

@@ -2,7 +2,6 @@ package mqttp
 
 import (
 	"fmt"
-	"unicode/utf8"
 )
 
 const (
@@ -253,5 +252,5 @@ func Decode(v ProtocolVersion, buf []byte) (msg IFace, total int, err error) {
 // considered valid if it's longer than 0 bytes, and doesn't contain any wildcard characters
 // such as + and #.
 func ValidTopic(topic []byte) bool {
-	return utf8.Valid(topic) && TopicPublishRegexp.Match(topic)
+	return IsValidUTF(topic) && TopicPublishRegexp.Match(topic)
 }

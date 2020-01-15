@@ -499,7 +499,16 @@ func (msg *Connect) decodeMessage(from []byte) (int, error) {
 		if msg.username, n, err = ReadLPBytes(from[offset:]); err != nil {
 			return offset + n, err
 		}
+
 		offset += n
+
+		// [MQTT-3.1.3-11]
+		if !IsValidUTF(msg.username) {
+			if msg.version < ProtocolV50 {
+				return offset, CodeRefusedBadUsernameOrPassword
+			}
+			return offset, CodeBadUserOrPassword
+		}
 	}
 
 	// v3.1.1 [MQTT-3.1.3.5]
@@ -586,5 +595,5 @@ func (msg *Connect) validClientID(cid []byte) bool {
 
 	// V3.1.1  [MQTT-3.1.3-4]      [MQTT-3.1.3-5]
 	// V5.0    [MQTT-3.1.3-4]      [MQTT-3.1.3-5]
-	return utf8.Valid(cid) && clientIDRegexp.Match(cid)
+	return IsValidUTF(cid) && clientIDRegexp.Match(cid)
 }

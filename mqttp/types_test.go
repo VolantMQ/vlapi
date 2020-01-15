@@ -6,6 +6,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestUTFInvalid(t *testing.T) {
+	for i := byte(0); i <= 0x1F; i++ {
+		buf := []byte{i}
+		require.Equal(t, false, IsValidUTF(buf))
+	}
+
+	for i := byte(0x7F); i <= 0x9F; i++ {
+		buf := []byte{i}
+		require.Equal(t, false, IsValidUTF(buf))
+	}
+}
+
 func TestTopicNewInvalidArgs(t *testing.T) {
 	topic, err := NewTopic([]byte{})
 	require.Error(t, err)

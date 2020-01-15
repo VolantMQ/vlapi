@@ -92,7 +92,7 @@ func TestSubscribeMessageDecodeInvalidTopics(t *testing.T) {
 	}
 
 	_, _, err := Decode(ProtocolV311, buf)
-	require.EqualError(t, err, CodeProtocolError.Error(), "Error decoding message.")
+	require.EqualError(t, err, CodeMalformedPacket.Error(), "Error decoding message.")
 }
 
 func TestSubscribeMessageDecodeNoTopics(t *testing.T) {
@@ -174,7 +174,7 @@ func TestSubscribeMessageEncodeValid(t *testing.T) {
 	require.Equal(t, len(buf), n, "Error encoding message")
 
 	var m1 IFace
-	m1, n, err = Decode(ProtocolV311, dst)
+	m1, n, err = Decode(ProtocolV311, dst[:n])
 	msg1, ok := m1.(*Subscribe)
 	require.Equal(t, true, ok, "Invalid message type")
 
@@ -219,7 +219,7 @@ func TestSubscribeDecodeEncodeEquiv(t *testing.T) {
 	require.NoError(t, err, "Error encoding message")
 	require.Equal(t, len(buf), n2, "Raw message length does not match")
 
-	_, n3, err := Decode(ProtocolV311, dst)
+	_, n3, err := Decode(ProtocolV311, dst[:n2])
 	require.NoError(t, err, "Error decoding message")
 	require.Equal(t, len(buf), n3, "Raw message length does not match")
 }

@@ -27,6 +27,9 @@ var (
 
 	// SharedTopicRegexp regular expression that all share subscription must be validated
 	SharedTopicRegexp = regexp.MustCompile(`^\$share/([^#+/]+)(/)(.+)$`)
+
+	// BasicUTFRegexp regular expression all MQTT strings must meet [MQTT-1.5.3]
+	BasicUTFRegexp = regexp.MustCompile("^[^\u0000-\u001F\u007F-\u009F]*$")
 )
 
 var dollarPrefix = []byte("$")
@@ -62,7 +65,7 @@ func NewTopic(topic []byte) (*Topic, error) {
 	}
 
 	// [MQTT-3.10.3-1]
-	if !utf8.Valid(topic) {
+	if !IsValidUTF(topic) {
 		return nil, CodeProtocolError
 	}
 
@@ -142,4 +145,8 @@ func (t *Topic) DollarPrefix() string {
 // if not exists returns empty string
 func (t *Topic) ShareName() string {
 	return string(t.shareName)
+}
+
+func IsValidUTF(b []byte) bool {
+	return utf8.Valid(b) && BasicUTFRegexp.Match(b)
 }

@@ -52,7 +52,8 @@ const (
 	maskSubscriptionNL             byte = 0x04
 	maskSubscriptionRAP            byte = 0x08
 	maskSubscriptionRetainHandling byte = 0x30
-	maskSubscriptionReserved       byte = 0xC0
+	maskSubscriptionReservedV3     byte = 0xFC
+	maskSubscriptionReservedV5     byte = 0xC0
 )
 
 func (h *header) init(t Type, v ProtocolVersion, sz func() int, enc, dec func([]byte) (int, error)) {
@@ -279,6 +280,8 @@ func (h *header) decode(from []byte) (int, error) {
 		return offset, ErrInsufficientDataSize
 	}
 
+	fhLen := m + 1
+
 	offset += m
 	h.remLen = int32(remLen)
 
@@ -286,6 +289,8 @@ func (h *header) decode(from []byte) (int, error) {
 	// if not return expected size
 	if int(h.remLen) > len(from[offset:]) {
 		return offset + int(h.remLen), ErrInsufficientDataSize
+	} else if int(h.remLen) != len(from[offset:]) {
+		return offset + int(h.remLen), CodeProtocolError
 	}
 
 	var err error
@@ -295,6 +300,13 @@ func (h *header) decode(from []byte) (int, error) {
 		msgTotal, err = h.cb.decode(from[offset:])
 		offset += msgTotal
 	}
+
+	// this is malformed packet if packed was decoded but there is still
+	// payload remaining
+	if int32(offset-fhLen) != h.remLen {
+		return offset, CodeMalformedPacket
+	}
+
 	return offset, err
 }
 

@@ -223,7 +223,7 @@ func (msg *Publish) Topic() string {
 }
 
 // SetTopic sets the the topic name that identifies the information channel to which
-// payload data is published. An error is returned if ValidTopic() is falbase.
+// payload data is published. An error is returned if ValidTopic() is false.
 func (msg *Publish) SetTopic(v string) error {
 	if (msg.version < ProtocolV50 && len(v) == 0) || !ValidTopic([]byte(v)) {
 		return ErrInvalidTopic
@@ -287,13 +287,10 @@ func (msg *Publish) decodeMessage(from []byte) (int, error) {
 
 	if len(buf) == 0 && msg.version < ProtocolV50 {
 		return offset, CodeRefusedServerUnavailable
-	} else if !ValidTopic(buf) {
-		rejectCode := CodeRefusedServerUnavailable
-		if msg.version == ProtocolV50 {
-			rejectCode = CodeInvalidTopicName
-		}
+	}
 
-		return offset, rejectCode
+	if !ValidTopic(buf) {
+		return offset, CodeInvalidTopicName
 	}
 
 	msg.topic = string(buf)

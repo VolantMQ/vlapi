@@ -160,8 +160,10 @@ func TestConnAckDecodeEncodeEquiv(t *testing.T) {
 	require.Equal(t, len(buf), n2, "Error decoding message.")
 	require.Equal(t, buf, dst[:n2], "Error decoding message.")
 
-	_, n3, err := Decode(ProtocolV311, dst)
+	_, _, err = Decode(ProtocolV311, dst)
+	require.EqualError(t, err, CodeProtocolError.Error(), "Error decoding message")
 
+	_, n3, err := Decode(ProtocolV311, dst[:n2])
 	require.NoError(t, err, "Error decoding message.")
 	require.Equal(t, len(buf), n3, "Error decoding message.")
 }

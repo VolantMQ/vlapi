@@ -138,7 +138,7 @@ func TestUnSubscribeMessageEncode(t *testing.T) {
 	// msg1 := NewUnSubscribeMessage()
 
 	var m1 IFace
-	m1, n, err = Decode(ProtocolV311, dst)
+	m1, n, err = Decode(ProtocolV311, dst[:n])
 	msg1, ok := m1.(*UnSubscribe)
 	require.Equal(t, true, ok, "Invalid message type")
 
@@ -182,7 +182,7 @@ func TestUnSubscribeDecodeEncodeEquiv(t *testing.T) {
 	require.Equal(t, len(buf), n2, "Raw message length does not match")
 	require.Equal(t, 3, len(msg.topics), "Topics count does not match")
 
-	_, n3, err := Decode(ProtocolV311, dst)
+	_, n3, err := Decode(ProtocolV311, dst[:n2])
 
 	require.NoError(t, err, "Error decoding message")
 	require.Equal(t, len(buf), n3, "Raw message length does not match")
