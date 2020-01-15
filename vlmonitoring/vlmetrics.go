@@ -32,20 +32,20 @@ type Bytes struct {
 
 type Packets struct {
 	Total      FlowCounter
-	Connect    FlowCounter
-	ConnAck    FlowCounter
+	Connect    Counter
+	ConnAck    Counter
 	Publish    FlowCounter
 	Puback     FlowCounter
 	Pubrec     FlowCounter
 	Pubrel     FlowCounter
 	Pubcomp    FlowCounter
-	Sub        FlowCounter
-	SubAck     FlowCounter
-	UnSub      FlowCounter
-	UnSubAck   FlowCounter
+	Sub        Counter
+	SubAck     Counter
+	UnSub      Counter
+	UnSubAck   Counter
 	Disconnect FlowCounter
-	Ping       FlowCounter
-	Pong       FlowCounter
+	PingReq    Counter
+	PingResp   Counter
 	Auth       FlowCounter
 	Unknown    Counter
 	Rejected   Counter
@@ -100,9 +100,7 @@ func (c *FlowCounter) Diff(prev *FlowCounter) FlowCounter {
 			base{LoadStore(&c.Sent.base.uint64, &prev.Sent.base.uint64)},
 		},
 		Recv: Counter{
-			base{
-				LoadStore(&c.Recv.base.uint64, &prev.Recv.base.uint64),
-			},
+			base{LoadStore(&c.Recv.base.uint64, &prev.Recv.base.uint64)},
 		},
 	}
 }
