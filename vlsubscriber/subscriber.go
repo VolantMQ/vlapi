@@ -18,12 +18,12 @@ type SubscriptionParams struct {
 }
 
 // Subscriptions contains active subscriptions with respective subscription parameters
-type Subscriptions map[string]*SubscriptionParams
+type Subscriptions map[string]SubscriptionParams
 
 // IFace passed to present network connection
 type IFace interface {
 	Subscriptions() Subscriptions
-	Subscribe(string, *SubscriptionParams) ([]*mqttp.Publish, error)
+	Subscribe(string, SubscriptionParams) ([]*mqttp.Publish, error)
 	UnSubscribe(string) error
 	HasSubscriptions() bool
 	Online(c Publisher)
