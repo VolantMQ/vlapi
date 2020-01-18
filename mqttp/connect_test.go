@@ -348,6 +348,7 @@ func TestConnectMessageDecode4(t *testing.T) {
 		'e', 'x', 't', 'r', 'a',
 	}
 
+	_, _, err = Decode(ProtocolV311, buf)
 	require.EqualError(t, err, CodeProtocolError.Error())
 
 	// extra bytes
