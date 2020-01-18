@@ -2,7 +2,22 @@ package vlmonitoring
 
 import (
 	"sync/atomic"
+
+	"github.com/VolantMQ/vlapi/mqttp"
 )
+
+// DynamicIFace interface describes states of the dynamic value
+type DynamicIFace interface {
+	Topic() string
+	// Retained used by topics provider to get retained message when there is new subscription to given topic
+	Retained() *mqttp.Publish
+	// Publish used by systree update routine to publish new value when on periodic basis
+	Publish() *mqttp.Publish
+
+	Add(uint64) uint64
+	Set(uint64)
+	Get() uint64
+}
 
 type base struct {
 	uint64
