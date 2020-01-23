@@ -87,3 +87,11 @@ func (e Status) Error() string {
 
 	return "auth status: unknown status"
 }
+
+func (e Status) Desc() string {
+	if e == StatusAllow {
+		return "allow"
+	}
+
+	return "deny"
+}
