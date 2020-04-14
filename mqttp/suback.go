@@ -47,8 +47,10 @@ func (msg *SubAck) ReturnCodes() []ReasonCode {
 // An error is returned if any of the QoS values are not valid.
 func (msg *SubAck) AddReturnCodes(ret []ReasonCode) error {
 	for _, c := range ret {
-		if msg.version == ProtocolV50 && !c.IsValidForType(msg.mType) {
-			return ErrInvalidReturnCode
+		if msg.version == ProtocolV50 {
+			if !c.IsValidForType(msg.mType) {
+				return ErrInvalidReturnCode
+			}
 		} else if !QosType(c).IsValidFull() {
 			return ErrInvalidReturnCode
 		}
