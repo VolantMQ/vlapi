@@ -1,5 +1,9 @@
 package vlauth
 
+import (
+	"github.com/VolantMQ/vlapi/mqttp"
+)
+
 // AccessType acl type
 type AccessType int
 
@@ -48,7 +52,7 @@ var statusDesc = map[Status]string{
 // Permissions check session permissions
 type Permissions interface {
 	// ACL check access type for client id with username
-	ACL(clientID, username, topic string, accessType AccessType) error
+	ACL(clientID, username, topic string, accessType AccessType, requestedQoS mqttp.QosType) (mqttp.QosType, error)
 }
 
 // IFace interface to auth backends
